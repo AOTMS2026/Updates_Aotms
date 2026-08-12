@@ -21,26 +21,26 @@ export function renderLogin() {
   // HTML Template - initially showing Login
   card.innerHTML = `
     <div style="text-align: center; margin-bottom: 2rem;">
-      <h1 style="margin-bottom: 0.5rem; letter-spacing: 1px;">AOTMS</h1>
-      <p class="body-text" id="authSubtitle">Sign in to internal operations</p>
+      <h1 class="comic-neue-bold" style="margin-bottom: 0.5rem; letter-spacing: 1px;">AOTMS</h1>
+      <p class="body-text comic-neue-bold" id="authSubtitle">Sign in to internal operations</p>
     </div>
     
     <!-- LOGIN FORM -->
     <form id="loginForm">
       <div style="margin-bottom: 1rem;">
-        <label style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Email Address</label>
-        <input type="email" id="loginEmail" class="input" placeholder="Aotms@gmail.com" required>
+        <label class="comic-neue-bold" style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Email Address</label>
+        <input type="email" id="loginEmail" class="input comic-neue-bold" placeholder="Aotms@gmail.com" required>
       </div>
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Password</label>
+        <label class="comic-neue-bold" style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Password</label>
         <div style="position: relative;">
-          <input type="password" id="loginPassword" class="input" placeholder="Aotms@2026" required>
+          <input type="password" id="loginPassword" class="input comic-neue-bold" placeholder="Aotms@2026" required>
           <button type="button" class="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex;">
             ${svgEye}
           </button>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+      <button type="submit" class="btn btn-primary comic-neue-bold" style="width: 100%;">Sign In</button>
       <div style="text-align: center; margin-top: 1.5rem; font-size: 13px;">
         <span style="color: var(--text-muted);">Don't have an account?</span>
         <a href="#" id="showSignup" style="color: var(--accent-primary); text-decoration: none; font-weight: 500; margin-left: 0.25rem;">Sign Up</a>
@@ -50,32 +50,32 @@ export function renderLogin() {
     <!-- SIGN UP FORM -->
     <form id="signupForm" style="display: none;">
       <div style="margin-bottom: 1rem;">
-        <label style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Full Name</label>
-        <input type="text" id="signupName" class="input" placeholder="John Doe" required>
+        <label class="comic-neue-bold" style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Full Name</label>
+        <input type="text" id="signupName" class="input comic-neue-bold" placeholder="John Doe" required>
       </div>
       <div style="margin-bottom: 1rem;">
-        <label style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Email Address</label>
-        <input type="email" id="signupEmail" class="input" placeholder="john@example.com" required>
+        <label class="comic-neue-bold" style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Email Address</label>
+        <input type="email" id="signupEmail" class="input comic-neue-bold" placeholder="john@example.com" required>
       </div>
       <div style="margin-bottom: 1rem;">
-        <label style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Password</label>
+        <label class="comic-neue-bold" style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Password</label>
         <div style="position: relative;">
-          <input type="password" id="signupPassword" class="input" placeholder="Min. 8 characters" minlength="8" required>
+          <input type="password" id="signupPassword" class="input comic-neue-bold" placeholder="Min. 8 characters" minlength="8" required>
           <button type="button" class="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex;">
             ${svgEye}
           </button>
         </div>
       </div>
       <div style="margin-bottom: 1.5rem;">
-        <label style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Confirm Password</label>
+        <label class="comic-neue-bold" style="display: block; margin-bottom: 0.25rem; font-size: 13px; font-weight: 500;">Confirm Password</label>
         <div style="position: relative;">
-          <input type="password" id="signupConfirm" class="input" placeholder="Confirm password" minlength="8" required>
+          <input type="password" id="signupConfirm" class="input comic-neue-bold" placeholder="Confirm password" minlength="8" required>
           <button type="button" class="toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex;">
             ${svgEye}
           </button>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+      <button type="submit" class="btn btn-primary comic-neue-bold" style="width: 100%;">Create Account</button>
       <div style="text-align: center; margin-top: 1.5rem; font-size: 13px;">
         <span style="color: var(--text-muted);">Already have an account?</span>
         <a href="#" id="showLogin" style="color: var(--accent-primary); text-decoration: none; font-weight: 500; margin-left: 0.25rem;">Sign In</a>

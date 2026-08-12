@@ -458,3 +458,9 @@ tbody tr:last-child td {
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
+
+.comic-neue-bold {
+  font-family: "Comic Neue", cursive;
+  font-weight: 700;
+  font-style: normal;
+}
