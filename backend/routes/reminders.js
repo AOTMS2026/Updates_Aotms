@@ -20,7 +20,7 @@ router.get('/', authMiddleware, async (req, res) => {
         const filter = { owner: req.user.id };
         if (req.query.status) filter.status = req.query.status;
 
-        const reminders = await Reminder.find(filter).sort('time');
+        const reminders = await Reminder.find(filter).populate('owner', 'name email').sort('time');
         res.json(reminders);
     } catch (err) {
         res.status(500).json({ error: err.message });
