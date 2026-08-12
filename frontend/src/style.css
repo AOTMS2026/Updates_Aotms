@@ -1,0 +1,460 @@
+:root {
+  /* Design System - White & Orange */
+  --bg-primary: #ffffff;
+  --bg-surface: #fafafa;
+  --bg-hover: #f5f5f5;
+  
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  
+  --border-color: #e5e5e5;
+  --border-focus: #f97316;
+  
+  --accent-primary: #f97316;
+  --accent-hover: #ea580c;
+  
+  --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.5);
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  
+  --transition-fast: 0.15s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Inter", -apple-system, sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography Hierarchy */
+h1, .page-title {
+  font-family: "Staatliches", sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+h2, .section-title {
+  font-family: "Staatliches", sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+h3, .card-title {
+  font-family: "Staatliches", sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+
+p, .body-text {
+  font-size: 15px; /* 14-15px requested */
+  color: var(--text-secondary);
+}
+
+.metadata {
+  font-size: 13px; /* 12-13px requested */
+  color: var(--text-muted);
+}
+
+.metric-number {
+  font-size: 32px; /* 28-36px requested */
+  color: var(--text-primary);
+}
+
+/* Base App Layout */
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: var(--bg-primary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-logo {
+  padding: 1.5rem;
+  font-family: "Staatliches", sans-serif;
+  font-size: 28px;
+  color: var(--text-primary);
+  letter-spacing: 2px;
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.nav-section {
+  font-family: "Staatliches", sans-serif;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 1rem 1.5rem 0.5rem;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 0.5rem 1.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-family: "Staatliches", sans-serif;
+  font-size: 20px; /* Larger font for Staatliches */
+  letter-spacing: 1px;
+  transition: all var(--transition-fast);
+  border-left: 4px solid transparent;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(249, 115, 22, 0.05); /* Subtle orange bg */
+  color: var(--accent-primary);
+  border-left-color: rgba(249, 115, 22, 0.5);
+}
+
+.sidebar-link.active {
+  color: var(--accent-primary);
+  background-color: rgba(249, 115, 22, 0.1);
+  border-left-color: var(--accent-primary);
+}
+
+.sidebar-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Main Content Area & Header */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.top-header {
+  height: 64px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+  background-color: var(--bg-primary);
+}
+
+/* Cards & Grid Layout */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-subtle);
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.card-body {
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(249, 115, 22, 0.1);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Staatliches", sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 18px; /* Slightly larger for Staatliches */
+  letter-spacing: 1px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: #000000;
+  border: 1px solid var(--accent-primary);
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(249, 115, 22, 0.1);
+}
+
+/* Inputs */
+label {
+  font-family: "Staatliches", sans-serif;
+  letter-spacing: 0.5px;
+  font-size: 18px;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Staatliches", sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  transition: border-color var(--transition-fast);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+
+/* Tables */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th, td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 14px;
+}
+
+th {
+  color: var(--text-muted);
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  background-color: var(--bg-primary);
+}
+
+tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+tbody tr:hover {
+  background-color: var(--bg-surface);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 14px; /* Slightly larger for Staatliches */
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.badge-completed {
+  background-color: var(--accent-primary);
+  color: #000;
+  border: 1px solid var(--accent-primary);
+}
+
+.badge-inprogress {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.badge-blocked {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.badge-todo {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--text-muted);
+}
+
+/* Progress Bars */
+.progress-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar-bg {
+  flex: 1;
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--accent-primary);
+  border-radius: var(--radius-sm);
+  transition: width 0.5s ease;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.2s forwards;
+}
+
+.modal-content {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  width: 90%;
+  max-width: 500px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: var(--shadow-subtle);
+  transform: translateY(20px);
+  animation: slideUp 0.3s forwards;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.modal-close:hover {
+  color: var(--accent-primary);
+}
+
+@keyframes slideUp {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
