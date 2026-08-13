@@ -17,10 +17,13 @@ router.post('/', authMiddleware, async (req, res) => {
 // Get Reminders
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const filter = { owner: req.user.id };
+        const filter = { $or: [{ owner: req.user.id }, { assignedTo: req.user.id }] };
         if (req.query.status) filter.status = req.query.status;
 
-        const reminders = await Reminder.find(filter).populate('owner', 'name email').sort('time');
+        const reminders = await Reminder.find(filter)
+            .populate('owner', 'name email')
+            .populate('assignedTo', 'name email')
+            .sort('time');
         res.json(reminders);
     } catch (err) {
         res.status(500).json({ error: err.message });

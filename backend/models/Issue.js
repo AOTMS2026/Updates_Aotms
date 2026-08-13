@@ -5,7 +5,7 @@ const issueSchema = new mongoose.Schema({
     description: { type: String },
     project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
     reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     priority: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'], default: 'MEDIUM' },
     severity: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'], default: 'MEDIUM' },
     status: { type: String, enum: ['OPEN', 'IN_PROGRESS', 'BLOCKED', 'RESOLVED', 'CLOSED'], default: 'OPEN' },

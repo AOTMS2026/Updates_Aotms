@@ -47,6 +47,17 @@ export function renderReminders() {
               </select>
             </div>
           </div>
+
+          <div style="margin-bottom: 1.5rem; position: relative;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assign To (Optional)</label>
+            <div id="remAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
+              <span id="remAssigneeText">Just Me</span>
+              <span style="font-size: 12px; color: var(--text-muted);">▼</span>
+            </div>
+            <div id="remAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
+              <!-- Dynamic Checkboxes -->
+            </div>
+          </div>
           
           <button type="submit" class="btn btn-primary" style="width: 100%;">Save Reminder</button>
         </form>
@@ -62,6 +73,33 @@ export function renderReminders() {
   const form = container.querySelector('#reminderForm');
   const tbody = container.querySelector('#reminders-list');
 
+  const remAssigneeBtn = container.querySelector('#remAssigneeBtn');
+  const remAssigneeDropdown = container.querySelector('#remAssigneeDropdown');
+  const remAssigneeText = container.querySelector('#remAssigneeText');
+
+  remAssigneeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = remAssigneeDropdown.style.display === 'flex';
+    remAssigneeDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!remAssigneeBtn.contains(e.target) && !remAssigneeDropdown.contains(e.target)) {
+      remAssigneeDropdown.style.display = 'none';
+    }
+  });
+
+  const updateAssigneeText = () => {
+    const checked = Array.from(remAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    if (checked.length === 0) {
+      remAssigneeText.textContent = 'Just Me';
+    } else if (checked.length === 1) {
+      remAssigneeText.textContent = checked[0].nextElementSibling.textContent;
+    } else {
+      remAssigneeText.textContent = `${checked.length} employees selected`;
+    }
+  };
+
   const applyFiltersAndRender = () => {
     currentStatusFilter = filterStatus.value;
     let filtered = allReminders.filter(r => {
@@ -73,13 +111,40 @@ export function renderReminders() {
 
   filterStatus.addEventListener('change', applyFiltersAndRender);
 
-  addBtn.addEventListener('click', () => {
+  const loadUsers = async () => {
+    try {
+      const token = localStorage.getItem('aotms_token');
+      const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const users = await res.json();
+      remAssigneeDropdown.innerHTML = '';
+      users.forEach(u => {
+        const label = document.createElement('label');
+        label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
+        label.onmouseover = () => label.style.background = 'var(--bg-primary)';
+        label.onmouseout = () => label.style.background = 'transparent';
+        
+        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
+        
+        label.querySelector('.assignee-checkbox').addEventListener('change', updateAssigneeText);
+        
+        remAssigneeDropdown.appendChild(label);
+      });
+      updateAssigneeText();
+    } catch (e) { console.error(e); }
+  };
+
+  addBtn.addEventListener('click', async () => {
     form.reset();
+    await loadUsers();
     
     // Set default datetime to now
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     container.querySelector('#remTime').value = now.toISOString().slice(0,16);
+
+    // Clear selections on open
+    Array.from(remAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
+    updateAssigneeText();
 
     modal.style.display = 'flex';
   });
@@ -97,6 +162,12 @@ export function renderReminders() {
       time: new Date(form.querySelector('#remTime').value).toISOString(),
       repeat: form.querySelector('#remRepeat').value
     };
+
+    const assigneeCheckboxes = Array.from(remAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    const assigneeIds = assigneeCheckboxes.map(cb => cb.value).filter(val => val !== "");
+    
+    if (assigneeIds.length > 0) body.assignedTo = assigneeIds;
+    else body.assignedTo = [];
 
     try {
       await fetch(`${API_BASE_URL}/reminders`, {
@@ -181,6 +252,16 @@ export function renderReminders() {
       const isPast = d < new Date() && r.status === 'ACTIVE';
       const initials = r.owner ? r.owner.name.substring(0,2).toUpperCase() : 'ME';
 
+      let avatarsHtml = '';
+      if (r.assignedTo && r.assignedTo.length > 0) {
+        r.assignedTo.forEach(assignee => {
+          const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
+          avatarsHtml += `<span class="metadata" style="margin-right: 8px;" title="Assigned to ${assignee.name || 'Unknown'}">${assignee.name || 'Unknown'}</span>`;
+        });
+      } else {
+        avatarsHtml = `<span class="metadata">Assigned: Just Me</span>`;
+      }
+
       const card = document.createElement('div');
       card.className = 'card';
       if (cardStyle) card.style = cardStyle;
@@ -198,7 +279,7 @@ export function renderReminders() {
           </div>
         </div>
         <div class="card-footer">
-          <span class="metadata"></span>
+          <div>${avatarsHtml}</div>
           <div style="display: flex; gap: 0.5rem;">
             <button class="btn btn-secondary toggle-btn" style="padding: 0.25rem 0.5rem; font-size: 12px;">${r.status === 'ACTIVE' ? 'Complete' : 'Reactivate'}</button>
             <button class="btn btn-secondary del-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; color: #ef4444; border-color: #fca5a5;">Delete</button>

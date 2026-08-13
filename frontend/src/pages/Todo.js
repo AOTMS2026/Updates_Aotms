@@ -50,12 +50,16 @@ export function renderTodo() {
                 <option value="TEAM">TEAM</option>
               </select>
             </div>
-            <div style="flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To (If Team)</label>
-              <select id="todoAssignee" class="input">
-                <option value="">Unassigned / Me</option>
-              </select>
+            <div style="margin-bottom: 1rem; position: relative; flex: 1;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To (If Team)</label>
+            <div id="todoAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
+              <span id="todoAssigneeText">Unassigned / Me</span>
+              <span style="font-size: 12px; color: var(--text-muted);">▼</span>
             </div>
+            <div id="todoAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
+              <!-- Dynamic Checkboxes -->
+            </div>
+          </div>
           </div>
 
           <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
@@ -99,7 +103,34 @@ export function renderTodo() {
   const form = container.querySelector('#todoForm');
   const modalTitle = container.querySelector('#modalTitle');
   const tbody = container.querySelector('#todos-list');
-  const assigneeSelect = container.querySelector('#todoAssignee');
+  const typeSelect = container.querySelector('#todoType');
+
+  const todoAssigneeBtn = container.querySelector('#todoAssigneeBtn');
+  const todoAssigneeDropdown = container.querySelector('#todoAssigneeDropdown');
+  const todoAssigneeText = container.querySelector('#todoAssigneeText');
+
+  todoAssigneeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = todoAssigneeDropdown.style.display === 'flex';
+    todoAssigneeDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!todoAssigneeBtn.contains(e.target) && !todoAssigneeDropdown.contains(e.target)) {
+      todoAssigneeDropdown.style.display = 'none';
+    }
+  });
+
+  const updateAssigneeText = () => {
+    const checked = Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    if (checked.length === 0) {
+      todoAssigneeText.textContent = 'Unassigned / Me';
+    } else if (checked.length === 1) {
+      todoAssigneeText.textContent = checked[0].nextElementSibling.textContent;
+    } else {
+      todoAssigneeText.textContent = `${checked.length} employees selected`;
+    }
+  };
 
   const applyFiltersAndRender = () => {
     currentStatusFilter = filterStatus.value;
@@ -120,17 +151,45 @@ export function renderTodo() {
   filterStatus.addEventListener('change', applyFiltersAndRender);
   filterType.addEventListener('change', applyFiltersAndRender);
 
+  typeSelect.addEventListener('change', async (e) => {
+    if (e.target.value === 'TEAM') {
+      try {
+        const token = localStorage.getItem('aotms_token');
+        const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
+        const users = await res.json();
+        todoAssigneeDropdown.innerHTML = '';
+        users.forEach(u => {
+          const label = document.createElement('label');
+          label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
+          label.onmouseover = () => label.style.background = 'var(--bg-primary)';
+          label.onmouseout = () => label.style.background = 'transparent';
+          
+          label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
+          
+          label.querySelector('.assignee-checkbox').addEventListener('change', updateAssigneeText);
+          
+          todoAssigneeDropdown.appendChild(label);
+        });
+        updateAssigneeText();
+      } catch (err) { console.error(err); }
+    } else {
+      todoAssigneeDropdown.innerHTML = '';
+      updateAssigneeText();
+    }
+  });
+
   const loadUsers = async () => {
     try {
       const token = localStorage.getItem('aotms_token');
       const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
       const users = await res.json();
-      assigneeSelect.innerHTML = '<option value="">Unassigned / Me</option>';
+      todoAssigneeDropdown.innerHTML = '';
       users.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u._id;
-        opt.textContent = u.name;
-        assigneeSelect.appendChild(opt);
+        const label = document.createElement('label');
+        label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
+        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
+        label.querySelector('.assignee-checkbox').addEventListener('change', updateAssigneeText);
+        todoAssigneeDropdown.appendChild(label);
       });
     } catch (e) { console.error(e); }
   };
@@ -140,6 +199,7 @@ export function renderTodo() {
     modalTitle.textContent = "Add Todo";
     form.reset();
     await loadUsers();
+    updateAssigneeText();
     modal.style.display = 'flex';
   });
 
@@ -158,7 +218,15 @@ export function renderTodo() {
     form.querySelector('#todoStatus').value = todoData.status || 'TODO';
     form.querySelector('#todoPriority').value = todoData.priority || 'MEDIUM';
     form.querySelector('#todoDesc').value = todoData.description || '';
-    if (todoData.assignedTo && todoData.assignedTo._id) assigneeSelect.value = todoData.assignedTo._id;
+    
+    Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
+    if (todoData.assignedTo && todoData.assignedTo.length > 0) {
+      const assignedIds = todoData.assignedTo.map(a => a._id);
+      Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => {
+        if (assignedIds.includes(cb.value)) cb.checked = true;
+      });
+    }
+    updateAssigneeText();
     
     modal.style.display = 'flex';
   };
@@ -189,9 +257,11 @@ export function renderTodo() {
       description: form.querySelector('#todoDesc').value
     };
 
-    const assigneeId = form.querySelector('#todoAssignee').value;
-    if (assigneeId) body.assignedTo = assigneeId;
-    else body.assignedTo = null;
+    const assigneeCheckboxes = Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    const assigneeIds = assigneeCheckboxes.map(cb => cb.value).filter(val => val !== "");
+    
+    if (assigneeIds.length > 0) body.assignedTo = assigneeIds;
+    else body.assignedTo = [];
 
     try {
       const url = editingTodoId ? `${API_BASE_URL}/todos/${editingTodoId}` : `${API_BASE_URL}/todos`;
@@ -244,16 +314,27 @@ export function renderTodo() {
       if (t.priority === 'HIGH') prioClass = 'badge-blocked';
       else if (t.priority === 'MEDIUM') prioClass = 'badge-inprogress';
 
-      const initials = t.assignedTo ? t.assignedTo.name.substring(0,2).toUpperCase() : '?';
+      let avatarsHtml = '';
+      if (t.assignedTo && t.assignedTo.length > 0) {
+        t.assignedTo.forEach(assignee => {
+          const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
+          avatarsHtml += `<div class="avatar" title="Assigned to ${assignee.name || 'Unknown'}">${init}</div>`;
+        });
+      } else {
+        avatarsHtml = `<div class="avatar" title="Assigned to Me">ME</div>`;
+      }
 
+      let cardStyle = "";
+      if (t.status === 'COMPLETED') cardStyle = 'opacity: 0.6; filter: grayscale(1);';
+      
       const card = document.createElement('div');
       card.className = 'card';
-      if (t.status === 'COMPLETED') card.style = 'opacity: 0.6; filter: grayscale(1);';
+      if (cardStyle) card.style = cardStyle;
       
       card.innerHTML = `
         <div class="card-header">
           <h3 class="card-title" style="font-size: 18px;">${t.title}</h3>
-          <div class="avatar" title="Assigned to ${t.assignedTo ? t.assignedTo.name : 'Unknown'}">${initials}</div>
+          <div style="display: flex; gap: -8px;">${avatarsHtml}</div>
         </div>
         <div class="card-body">
           <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">${t.description || 'No description'}</p>

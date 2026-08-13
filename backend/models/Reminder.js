@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const reminderSchema = new mongoose.Schema({
     title: { type: String, required: true },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     time: { type: Date, required: true },
     repeat: { type: String, enum: ['ONE_TIME', 'DAILY', 'WEEKLY', 'MONTHLY', 'CUSTOM'], default: 'ONE_TIME' },
     status: { type: String, enum: ['ACTIVE', 'COMPLETED'], default: 'ACTIVE' }

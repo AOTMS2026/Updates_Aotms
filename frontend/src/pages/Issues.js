@@ -57,11 +57,15 @@ export function renderIssues() {
             </div>
           </div>
 
-          <div style="margin-bottom: 1rem;">
+          <div style="margin-bottom: 1rem; position: relative;">
             <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To</label>
-            <select id="issueAssignee" class="input">
-              <option value="">Unassigned</option>
-            </select>
+            <div id="issueAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
+              <span id="issueAssigneeText">Unassigned</span>
+              <span style="font-size: 12px; color: var(--text-muted);">▼</span>
+            </div>
+            <div id="issueAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
+              <!-- Dynamic Checkboxes -->
+            </div>
           </div>
           
           <div style="margin-bottom: 1.5rem;">
@@ -82,7 +86,33 @@ export function renderIssues() {
   const closeBtn = container.querySelector('#closeIssueModal');
   const form = container.querySelector('#issueForm');
   const tbody = container.querySelector('#issues-list');
-  const assigneeSelect = container.querySelector('#issueAssignee');
+
+  const issueAssigneeBtn = container.querySelector('#issueAssigneeBtn');
+  const issueAssigneeDropdown = container.querySelector('#issueAssigneeDropdown');
+  const issueAssigneeText = container.querySelector('#issueAssigneeText');
+
+  issueAssigneeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = issueAssigneeDropdown.style.display === 'flex';
+    issueAssigneeDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!issueAssigneeBtn.contains(e.target) && !issueAssigneeDropdown.contains(e.target)) {
+      issueAssigneeDropdown.style.display = 'none';
+    }
+  });
+
+  const updateAssigneeText = () => {
+    const checked = Array.from(issueAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    if (checked.length === 0) {
+      issueAssigneeText.textContent = 'Unassigned';
+    } else if (checked.length === 1) {
+      issueAssigneeText.textContent = checked[0].nextElementSibling.textContent;
+    } else {
+      issueAssigneeText.textContent = `${checked.length} employees selected`;
+    }
+  };
 
   const applyFiltersAndRender = () => {
     currentStatusFilter = filterStatus.value;
@@ -105,19 +135,31 @@ export function renderIssues() {
       const token = localStorage.getItem('aotms_token');
       const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
       const users = await res.json();
-      assigneeSelect.innerHTML = '<option value="">Unassigned</option>';
+      issueAssigneeDropdown.innerHTML = '';
       users.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u._id;
-        opt.textContent = u.name;
-        assigneeSelect.appendChild(opt);
+        const label = document.createElement('label');
+        label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
+        label.onmouseover = () => label.style.background = 'var(--bg-primary)';
+        label.onmouseout = () => label.style.background = 'transparent';
+        
+        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
+        
+        label.querySelector('.assignee-checkbox').addEventListener('change', updateAssigneeText);
+        
+        issueAssigneeDropdown.appendChild(label);
       });
+      updateAssigneeText();
     } catch (e) { console.error(e); }
   };
 
   addBtn.addEventListener('click', async () => {
     form.reset();
     await loadUsers();
+    
+    // Clear selections on open
+    Array.from(issueAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
+    updateAssigneeText();
+    
     modal.style.display = 'flex';
   });
 
@@ -136,8 +178,11 @@ export function renderIssues() {
       description: form.querySelector('#issueDesc').value
     };
 
-    const assigneeId = form.querySelector('#issueAssignee').value;
-    if (assigneeId) body.assignedTo = assigneeId;
+    const assigneeCheckboxes = Array.from(issueAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    const assigneeIds = assigneeCheckboxes.map(cb => cb.value).filter(val => val !== "");
+    
+    if (assigneeIds.length > 0) body.assignedTo = assigneeIds;
+    else body.assignedTo = [];
 
     try {
       await fetch(`${API_BASE_URL}/issues`, {
@@ -208,8 +253,34 @@ export function renderIssues() {
           </div>
           <span class="badge ${badgeClass}">${statusText}</span>
         </div>
+      let avatarsHtml = '';
+      if (i.assignedTo && i.assignedTo.length > 0) {
+        i.assignedTo.forEach(assignee => {
+          const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
+          avatarsHtml += `<span class="metadata" style="margin-right: 8px;" title="Assigned to ${assignee.name || 'Unknown'}">${assignee.name || 'Unknown'}</span>`;
+        });
+      } else {
+        avatarsHtml = `<span class="metadata">Assigned: Unassigned</span>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      if (cardStyle) card.style = cardStyle;
+      
+      card.innerHTML = `
+        <div class="card-header">
+          <h3 class="card-title" style="font-size: 18px;">${i.title}</h3>
+          <div class="avatar" title="Reported by ${i.reportedBy ? i.reportedBy.name : 'Unknown'}">${initials}</div>
+        </div>
+        <div class="card-body">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <span class="badge" style="border: 1px solid var(--border-color);">${i.priority} Prio</span>
+            <span class="badge" style="border: 1px solid var(--border-color);">${i.severity} Sev</span>
+          </div>
+          <span class="badge ${badgeClass}">${statusText}</span>
+        </div>
         <div class="card-footer">
-          <span class="metadata">Assigned: ${i.assignedTo ? i.assignedTo.name : 'Unassigned'}</span>
+          <div>${avatarsHtml}</div>
           <a href="#/tracking/issues/${i._id}" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 12px; text-decoration: none;">View / Update</a>
         </div>
       `;

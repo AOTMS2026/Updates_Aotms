@@ -18,7 +18,7 @@ router.post('/features', authMiddleware, async (req, res) => {
 // Get all features
 router.get('/features', authMiddleware, async (req, res) => {
     try {
-        const features = await Feature.find().populate('project');
+        const features = await Feature.find().populate('project').populate('assignedTo', 'name');
         res.json(features);
     } catch (err) {
         res.status(500).json({ error: err.message });

@@ -43,6 +43,16 @@ export function renderFeatures() {
               <option value="COMPLETED">COMPLETED</option>
             </select>
           </div>
+          <div style="margin-bottom: 1rem; position: relative;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To (Team)</label>
+            <div id="featureAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
+              <span id="featureAssigneeText">Unassigned</span>
+              <span style="font-size: 12px; color: var(--text-muted);">▼</span>
+            </div>
+            <div id="featureAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
+              <!-- Dynamic Checkboxes -->
+            </div>
+          </div>
           <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Description</label>
             <textarea id="featureDesc" class="input" rows="3"></textarea>
@@ -63,6 +73,33 @@ export function renderFeatures() {
   const modalTitle = container.querySelector('#modalTitle');
   const tbody = container.querySelector('#features-list');
 
+  const featureAssigneeBtn = container.querySelector('#featureAssigneeBtn');
+  const featureAssigneeDropdown = container.querySelector('#featureAssigneeDropdown');
+  const featureAssigneeText = container.querySelector('#featureAssigneeText');
+
+  featureAssigneeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = featureAssigneeDropdown.style.display === 'flex';
+    featureAssigneeDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!featureAssigneeBtn.contains(e.target) && !featureAssigneeDropdown.contains(e.target)) {
+      featureAssigneeDropdown.style.display = 'none';
+    }
+  });
+
+  const updateAssigneeText = () => {
+    const checked = Array.from(featureAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    if (checked.length === 0) {
+      featureAssigneeText.textContent = 'Unassigned';
+    } else if (checked.length === 1) {
+      featureAssigneeText.textContent = checked[0].nextElementSibling.textContent;
+    } else {
+      featureAssigneeText.textContent = `${checked.length} employees selected`;
+    }
+  };
+
   const applyFiltersAndRender = () => {
     currentStatusFilter = filterStatus.value;
     const searchTerm = searchInput.value.toLowerCase();
@@ -79,10 +116,38 @@ export function renderFeatures() {
   searchInput.addEventListener('input', applyFiltersAndRender);
   filterStatus.addEventListener('change', applyFiltersAndRender);
 
-  addBtn.addEventListener('click', () => {
+  const loadUsers = async () => {
+    try {
+      const token = localStorage.getItem('aotms_token');
+      const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const users = await res.json();
+      featureAssigneeDropdown.innerHTML = '';
+      users.forEach(u => {
+        const label = document.createElement('label');
+        label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
+        label.onmouseover = () => label.style.background = 'var(--bg-primary)';
+        label.onmouseout = () => label.style.background = 'transparent';
+        
+        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
+        
+        label.querySelector('.assignee-checkbox').addEventListener('change', updateAssigneeText);
+        
+        featureAssigneeDropdown.appendChild(label);
+      });
+      updateAssigneeText();
+    } catch (e) { console.error(e); }
+  };
+
+  addBtn.addEventListener('click', async () => {
     editingFeatureId = null;
     modalTitle.textContent = "New Feature";
     form.reset();
+    await loadUsers();
+    
+    // Clear selections
+    Array.from(featureAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
+    updateAssigneeText();
+
     modal.style.display = 'flex';
   });
 
@@ -90,15 +155,26 @@ export function renderFeatures() {
     modal.style.display = 'none';
   });
 
-  container.openEditModal = (featureData) => {
+  container.openEditModal = async (featureData) => {
     editingFeatureId = featureData._id;
     modalTitle.textContent = "Edit Feature";
     form.reset();
+    await loadUsers();
     
     form.querySelector('#featureTitle').value = featureData.title || '';
     form.querySelector('#featureStatus').value = featureData.status || 'PLANNED';
     form.querySelector('#featureDesc').value = featureData.description || '';
     
+    // Clear selections first
+    Array.from(featureAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
+    if (featureData.assignedTo && featureData.assignedTo.length > 0) {
+      const assignedIds = featureData.assignedTo.map(a => a._id);
+      Array.from(featureAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => {
+        if (assignedIds.includes(cb.value)) cb.checked = true;
+      });
+    }
+    updateAssigneeText();
+
     modal.style.display = 'flex';
   };
 
@@ -125,6 +201,12 @@ export function renderFeatures() {
       status: form.querySelector('#featureStatus').value,
       description: form.querySelector('#featureDesc').value
     };
+
+    const assigneeCheckboxes = Array.from(featureAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    const assigneeIds = assigneeCheckboxes.map(cb => cb.value).filter(val => val !== "");
+    
+    if (assigneeIds.length > 0) body.assignedTo = assigneeIds;
+    else body.assignedTo = [];
 
     try {
       const url = editingFeatureId ? `${API_BASE_URL}/tasks/features/${editingFeatureId}` : `${API_BASE_URL}/tasks/features`;
@@ -180,6 +262,16 @@ export function renderFeatures() {
         cardStyle = 'opacity: 0.6; filter: grayscale(1);';
       }
 
+      let avatarsHtml = '';
+      if (f.assignedTo && f.assignedTo.length > 0) {
+        f.assignedTo.forEach(assignee => {
+          const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
+          avatarsHtml += `<div class="avatar" title="Assigned to ${assignee.name || 'Unknown'}">${init}</div>`;
+        });
+      } else {
+        avatarsHtml = `<div class="avatar" title="Unassigned">?</div>`;
+      }
+
       const card = document.createElement('div');
       card.className = 'card';
       if (cardStyle) card.style = cardStyle;
@@ -187,7 +279,7 @@ export function renderFeatures() {
       card.innerHTML = `
         <div class="card-header">
           <h3 class="card-title" style="font-size: 18px;">${f.title}</h3>
-          <div class="avatar" title="System Feature" style="background: var(--bg-surface); border-color: var(--border-color); color: var(--text-secondary);">SYS</div>
+          <div style="display: flex; gap: -8px;">${avatarsHtml}</div>
         </div>
         <div class="card-body">
           <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">${f.description || 'No description provided'}</p>
