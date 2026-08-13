@@ -131,9 +131,6 @@ async function fetchDashboardData(container) {
         tbody.appendChild(tr);
       });
     }
-
-    }
-
   } catch (err) {
     console.error('Error fetching dashboard data:', err);
     container.querySelector('#work-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger);">Failed to load data.</td></tr>';
