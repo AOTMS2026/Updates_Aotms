@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../config.js';
+
 export function renderDashboard() {
   const container = document.createElement('div');
   container.className = 'dashboard-container';
@@ -9,26 +10,22 @@ export function renderDashboard() {
   container.innerHTML = `
     <div style="margin-bottom: 2rem;">
       <h1 class="page-title" style="margin-bottom: 0.25rem;">Dashboard</h1>
-      <p class="body-text">${today}</p>
+      <p class="body-text">\${today}</p>
     </div>
 
     <!-- KPI Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;" id="kpi-cards">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;" id="kpi-cards">
       <div class="card" style="padding: 1rem 1.25rem;">
-        <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">Today's Tasks</div>
+        <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">Total Items</div>
         <div class="metric-number" id="kpi-total">-</div>
-      </div>
-      <div class="card" style="padding: 1rem 1.25rem;">
-        <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">Completed</div>
-        <div class="metric-number" id="kpi-completed">-</div>
       </div>
       <div class="card" style="padding: 1rem 1.25rem;">
         <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">In Progress</div>
         <div class="metric-number" id="kpi-inprogress">-</div>
       </div>
       <div class="card" style="padding: 1rem 1.25rem;">
-        <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">Blocked</div>
-        <div class="metric-number" id="kpi-blocked">-</div>
+        <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">Completed</div>
+        <div class="metric-number" id="kpi-completed">-</div>
       </div>
       <div class="card" style="padding: 1rem 1.25rem;">
         <div class="metadata" style="margin-bottom: 0.5rem; text-transform: uppercase;">Overall Progress</div>
@@ -38,23 +35,23 @@ export function renderDashboard() {
 
     <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
       
-      <!-- Today's Execution Table -->
+      <!-- Active Work Table -->
       <div>
-        <h2 class="section-title">Today's Execution</h2>
+        <h2 class="section-title">Active Work</h2>
         <div class="table-container" style="margin-top: 1rem;">
           <table>
             <thead>
               <tr>
-                <th>Execution Point</th>
-                <th>Feature</th>
+                <th>Title</th>
+                <th>Type</th>
                 <th>Assigned To</th>
                 <th>Priority</th>
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody id="tasks-tbody">
+            <tbody id="work-tbody">
               <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading tasks...</td>
+                <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading work...</td>
               </tr>
             </tbody>
           </table>
@@ -83,54 +80,64 @@ async function fetchDashboardData(container) {
     const token = localStorage.getItem('aotms_token');
     if (!token) return;
 
-    // Fetch tasks
-    const tasksRes = await fetch(`${API_BASE_URL}/tasks`, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    
-    // Fetch users for team progress
-    const usersRes = await fetch(`${API_BASE_URL}/users`, {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    // Fetch tasks, todos, and users concurrently
+    const [tasksRes, todosRes, usersRes] = await Promise.all([
+      fetch(\`\${API_BASE_URL}/tasks\`, { headers: { 'Authorization': 'Bearer ' + token } }),
+      fetch(\`\${API_BASE_URL}/todos\`, { headers: { 'Authorization': 'Bearer ' + token } }),
+      fetch(\`\${API_BASE_URL}/users\`, { headers: { 'Authorization': 'Bearer ' + token } })
+    ]);
 
     const tasks = await tasksRes.json();
+    const todos = await todosRes.json();
     const users = await usersRes.json();
 
+    // Combine all work items
+    const allWork = [
+      ...tasks.map(t => ({...t, itemType: 'TASK'})),
+      ...todos.map(t => ({...t, itemType: 'TODO'}))
+    ];
+
     // Calculate KPIs
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.status === 'COMPLETED').length;
-    const inProgress = tasks.filter(t => t.status === 'IN_PROGRESS').length;
-    const blocked = tasks.filter(t => t.status === 'BLOCKED').length;
+    const total = allWork.length;
+    const completed = allWork.filter(t => t.status === 'COMPLETED').length;
+    const inProgress = allWork.filter(t => t.status === 'IN_PROGRESS').length;
     const overallProgress = total === 0 ? 0 : Math.round((completed / total) * 100);
 
     container.querySelector('#kpi-total').textContent = total;
     container.querySelector('#kpi-completed').textContent = completed;
     container.querySelector('#kpi-inprogress').textContent = inProgress;
-    container.querySelector('#kpi-blocked').textContent = blocked;
     container.querySelector('#kpi-progress').textContent = overallProgress + '%';
 
-    // Populate Tasks Table
-    const tbody = container.querySelector('#tasks-tbody');
+    // Populate Active Work Table (exclude COMPLETED)
+    const activeWork = allWork.filter(t => t.status !== 'COMPLETED');
+    const tbody = container.querySelector('#work-tbody');
     tbody.innerHTML = '';
     
-    if (tasks.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No tasks found.</td></tr>';
+    if (activeWork.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No active work found.</td></tr>';
     } else {
-      tasks.forEach(task => {
+      activeWork.forEach(item => {
         let badgeClass = 'badge-todo';
         let statusText = 'TODO';
-        if (task.status === 'IN_PROGRESS') { badgeClass = 'badge-inprogress'; statusText = 'IN PROGRESS'; }
-        else if (task.status === 'COMPLETED') { badgeClass = 'badge-completed'; statusText = 'COMPLETED'; }
-        else if (task.status === 'BLOCKED') { badgeClass = 'badge-blocked'; statusText = 'BLOCKED'; }
+        if (item.status === 'IN_PROGRESS') { badgeClass = 'badge-inprogress'; statusText = 'IN PROGRESS'; }
+
+        // Extract assignee string safely
+        let assigneeStr = 'Unassigned';
+        if (item.assignedTo && item.assignedTo.length > 0) {
+          assigneeStr = item.assignedTo.map(a => a.name).join(', ');
+        } else if (item.assignedTo && item.assignedTo.name) {
+          // If assignedTo is a single object (from old Task schema)
+          assigneeStr = item.assignedTo.name;
+        }
 
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="font-weight: 500;">${task.title}</td>
-          <td class="body-text">${task.feature ? task.feature.title : '-'}</td>
-          <td class="body-text">${task.assignedTo ? task.assignedTo.name : 'Unassigned'}</td>
-          <td><span class="badge" style="border: 1px solid var(--border-color);">${task.priority}</span></td>
-          <td><span class="badge ${badgeClass}">${statusText}</span></td>
-        `;
+        tr.innerHTML = \`
+          <td style="font-weight: 500;">\${item.title}</td>
+          <td class="body-text" style="font-size: 12px; opacity: 0.8;">\${item.itemType}</td>
+          <td class="body-text">\${assigneeStr}</td>
+          <td><span class="badge" style="border: 1px solid var(--border-color);">\${item.priority || 'MEDIUM'}</span></td>
+          <td><span class="badge \${badgeClass}">\${statusText}</span></td>
+        \`;
         tbody.appendChild(tr);
       });
     }
@@ -143,31 +150,38 @@ async function fetchDashboardData(container) {
       teamContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No team members found.</div>';
     } else {
       users.forEach(user => {
-        // Mock progress for now, or calculate based on their tasks
-        const userTasks = tasks.filter(t => t.assignedTo && t.assignedTo._id === user._id);
-        const userTotal = userTasks.length;
-        const userCompleted = userTasks.filter(t => t.status === 'COMPLETED').length;
+        // Calculate progress based on allWork assigned to this user
+        const userWork = allWork.filter(item => {
+          if (!item.assignedTo) return false;
+          if (Array.isArray(item.assignedTo)) {
+            return item.assignedTo.some(a => a._id === user._id);
+          }
+          return item.assignedTo._id === user._id; // Fallback for old Task schema
+        });
+
+        const userTotal = userWork.length;
+        const userCompleted = userWork.filter(t => t.status === 'COMPLETED').length;
         const userProgress = userTotal === 0 ? 0 : Math.round((userCompleted / userTotal) * 100);
 
         const div = document.createElement('div');
         div.style.marginBottom = '1.5rem';
-        div.innerHTML = `
+        div.innerHTML = \`
           <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span class="body-text" style="color: var(--text-primary); font-weight: 500;">${user.name}</span>
-            <span class="body-text">${userProgress}%</span>
+            <span class="body-text" style="color: var(--text-primary); font-weight: 500;">\${user.name}</span>
+            <span class="body-text">\${userProgress}%</span>
           </div>
           <div class="progress-wrapper">
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: ${userProgress}%;"></div>
+              <div class="progress-bar-fill" style="width: \${userProgress}%;"></div>
             </div>
           </div>
-        `;
+        \`;
         teamContainer.appendChild(div);
       });
     }
 
   } catch (err) {
     console.error('Error fetching dashboard data:', err);
-    container.querySelector('#tasks-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger);">Failed to load data.</td></tr>';
+    container.querySelector('#work-tbody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger);">Failed to load data.</td></tr>';
   }
 }
