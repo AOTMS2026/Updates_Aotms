@@ -23,7 +23,7 @@ export function renderTodo() {
           <option value="">All Statuses</option>
           <option value="TODO">TODO</option>
           <option value="IN_PROGRESS">IN PROGRESS</option>
-          <option value="BLOCKED">BLOCKED</option>
+          <option value="COMPLETED">COMPLETED</option>
         </select>
       </div>
       <div style="display: flex; gap: 1rem;">
@@ -73,7 +73,6 @@ export function renderTodo() {
               <select id="todoStatus" class="input">
                 <option value="TODO" selected>TODO</option>
                 <option value="IN_PROGRESS">IN PROGRESS</option>
-                <option value="CANCELLED">CANCELLED</option>
               </select>
             </div>
             <div style="flex: 1;">
@@ -132,7 +131,6 @@ export function renderTodo() {
               <select id="taskStatus" class="input">
                 <option value="TODO">TODO</option>
                 <option value="IN_PROGRESS">IN PROGRESS</option>
-                <option value="BLOCKED">BLOCKED</option>
               </select>
             </div>
           </div>

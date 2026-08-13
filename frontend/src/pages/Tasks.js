@@ -3,10 +3,7 @@ import { API_BASE_URL } from '../config.js';
 export function renderTasks() {
   const container = document.createElement('div');
   
-  let editingTodoId = null;
-  let editingTaskId = null;
   let allCompletedWork = [];
-  
   let currentTypeFilter = "";
 
   container.innerHTML = `
@@ -24,313 +21,18 @@ export function renderTasks() {
     <div id="work-list" class="grid-container">
       <div style="text-align: center; color: var(--text-muted); width: 100%;">Loading...</div>
     </div>
-
-    <!-- Todo Edit Modal -->
-    <div id="todoModal" class="modal-overlay" style="display: none;">
-      <div class="modal-content">
-        <button class="modal-close" id="closeTodoModal">&times;</button>
-        <h2 id="todoModalTitle" class="section-title">Edit Todo</h2>
-        <form id="todoForm" style="margin-top: 1.5rem;">
-          <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Title *</label>
-            <input type="text" id="todoTitle" class="input" required>
-          </div>
-          
-          <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
-            <div style="flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Type</label>
-              <select id="todoType" class="input">
-                <option value="PERSONAL" selected>PERSONAL</option>
-                <option value="TEAM">TEAM</option>
-              </select>
-            </div>
-            <div style="margin-bottom: 1rem; position: relative; flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To (If Team)</label>
-              <div id="todoAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
-                <span id="todoAssigneeText">Unassigned / Me</span>
-                <span style="font-size: 12px; color: var(--text-muted);">▼</span>
-              </div>
-              <div id="todoAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
-                <!-- Dynamic Checkboxes -->
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
-            <div style="flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Status</label>
-              <select id="todoStatus" class="input">
-                <option value="TODO">TODO</option>
-                <option value="IN_PROGRESS">IN PROGRESS</option>
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="CANCELLED">CANCELLED</option>
-              </select>
-            </div>
-            <div style="flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Priority</label>
-              <select id="todoPriority" class="input">
-                <option value="LOW">LOW</option>
-                <option value="MEDIUM" selected>MEDIUM</option>
-                <option value="HIGH">HIGH</option>
-                <option value="URGENT">URGENT</option>
-              </select>
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Description</label>
-            <textarea id="todoDesc" class="input" rows="2"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Save Todo</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Task Edit Modal -->
-    <div id="taskModal" class="modal-overlay" style="display: none;">
-      <div class="modal-content">
-        <button class="modal-close" id="closeTaskModal">&times;</button>
-        <h2 id="taskModalTitle" class="section-title">Edit Task</h2>
-        <form id="taskForm" style="margin-top: 1.5rem;">
-          <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Title *</label>
-            <input type="text" id="taskTitle" class="input" required>
-          </div>
-          
-          <div style="margin-bottom: 1rem; position: relative;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To</label>
-            <div id="taskAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
-              <span id="taskAssigneeText">Unassigned</span>
-              <span style="font-size: 12px; color: var(--text-muted);">▼</span>
-            </div>
-            <div id="taskAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
-              <!-- Dynamic Checkboxes -->
-            </div>
-          </div>
-
-          <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
-            <div style="flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Priority</label>
-              <select id="taskPriority" class="input">
-                <option value="LOW">LOW</option>
-                <option value="MEDIUM" selected>MEDIUM</option>
-                <option value="HIGH">HIGH</option>
-              </select>
-            </div>
-            <div style="flex: 1;">
-              <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Status</label>
-              <select id="taskStatus" class="input">
-                <option value="TODO">TODO</option>
-                <option value="IN_PROGRESS">IN PROGRESS</option>
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="BLOCKED">BLOCKED</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="margin-bottom: 1.5rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Description</label>
-            <textarea id="taskDesc" class="input" rows="2"></textarea>
-          </div>
-          
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Save Task</button>
-        </form>
-      </div>
-    </div>
   `;
 
   const searchInput = container.querySelector('#searchWork');
   const filterType = container.querySelector('#filterType');
   const tbody = container.querySelector('#work-list');
 
-  // Todo Modal Elements
-  const todoModal = container.querySelector('#todoModal');
-  const closeTodoBtn = container.querySelector('#closeTodoModal');
-  const todoForm = container.querySelector('#todoForm');
-  const todoModalTitle = container.querySelector('#todoModalTitle');
-  const todoTypeSelect = container.querySelector('#todoType');
-  const todoAssigneeBtn = container.querySelector('#todoAssigneeBtn');
-  const todoAssigneeDropdown = container.querySelector('#todoAssigneeDropdown');
-  const todoAssigneeText = container.querySelector('#todoAssigneeText');
-
-  // Task Modal Elements
-  const taskModal = container.querySelector('#taskModal');
-  const closeTaskBtn = container.querySelector('#closeTaskModal');
-  const taskForm = container.querySelector('#taskForm');
-  const taskModalTitle = container.querySelector('#taskModalTitle');
-  const taskAssigneeBtn = container.querySelector('#taskAssigneeBtn');
-  const taskAssigneeDropdown = container.querySelector('#taskAssigneeDropdown');
-  const taskAssigneeText = container.querySelector('#taskAssigneeText');
-
-  // --- Assignee Dropdown Logic ---
-  const setupDropdown = (btn, dropdown, textEl, defaultText) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isVisible = dropdown.style.display === 'flex';
-      dropdown.style.display = isVisible ? 'none' : 'flex';
-    });
-    document.addEventListener('click', (e) => {
-      if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.style.display = 'none';
-      }
-    });
-    return () => {
-      const checked = Array.from(dropdown.querySelectorAll('.assignee-checkbox:checked'));
-      if (checked.length === 0) textEl.textContent = defaultText;
-      else if (checked.length === 1) textEl.textContent = checked[0].nextElementSibling.textContent;
-      else textEl.textContent = `${checked.length} employees selected`;
-    };
-  };
-
-  const updateTodoAssigneeText = setupDropdown(todoAssigneeBtn, todoAssigneeDropdown, todoAssigneeText, 'Unassigned / Me');
-  const updateTaskAssigneeText = setupDropdown(taskAssigneeBtn, taskAssigneeDropdown, taskAssigneeText, 'Unassigned');
-
-  todoTypeSelect.addEventListener('change', async (e) => {
-    if (e.target.value === 'TEAM') {
-      await loadUsers(todoAssigneeDropdown, updateTodoAssigneeText);
-    } else {
-      todoAssigneeDropdown.innerHTML = '';
-      updateTodoAssigneeText();
-    }
-  });
-
-  const loadUsers = async (dropdown, updateTextFn) => {
-    try {
-      const token = localStorage.getItem('aotms_token');
-      const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
-      const users = await res.json();
-      dropdown.innerHTML = '';
-      users.forEach(u => {
-        const label = document.createElement('label');
-        label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
-        label.onmouseover = () => label.style.background = 'var(--bg-primary)';
-        label.onmouseout = () => label.style.background = 'transparent';
-        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
-        label.querySelector('.assignee-checkbox').addEventListener('change', updateTextFn);
-        dropdown.appendChild(label);
-      });
-      updateTextFn();
-    } catch (e) { console.error(e); }
-  };
-
-  closeTodoBtn.addEventListener('click', () => todoModal.style.display = 'none');
-  closeTaskBtn.addEventListener('click', () => taskModal.style.display = 'none');
-
-  container.openEditTodoModal = async (todoData) => {
-    editingTodoId = todoData._id;
-    todoModalTitle.textContent = "Edit Todo";
-    todoForm.reset();
-    
-    if (todoData.type === 'TEAM') {
-      await loadUsers(todoAssigneeDropdown, updateTodoAssigneeText);
-    } else {
-      todoAssigneeDropdown.innerHTML = '';
-    }
-    
-    todoForm.querySelector('#todoTitle').value = todoData.title || '';
-    todoForm.querySelector('#todoType').value = todoData.type || 'PERSONAL';
-    todoForm.querySelector('#todoStatus').value = todoData.status || 'COMPLETED';
-    todoForm.querySelector('#todoPriority').value = todoData.priority || 'MEDIUM';
-    todoForm.querySelector('#todoDesc').value = todoData.description || '';
-    
-    Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
-    if (todoData.assignedTo && todoData.assignedTo.length > 0) {
-      const assignedIds = todoData.assignedTo.map(a => a._id);
-      Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => {
-        if (assignedIds.includes(cb.value)) cb.checked = true;
-      });
-    }
-    updateTodoAssigneeText();
-    todoModal.style.display = 'flex';
-  };
-
-  container.openEditTaskModal = async (taskData) => {
-    editingTaskId = taskData._id;
-    taskModalTitle.textContent = "Edit Task";
-    taskForm.reset();
-    await loadUsers(taskAssigneeDropdown, updateTaskAssigneeText);
-
-    taskForm.querySelector('#taskTitle').value = taskData.title || '';
-    taskForm.querySelector('#taskStatus').value = taskData.status || 'COMPLETED';
-    taskForm.querySelector('#taskPriority').value = taskData.priority || 'MEDIUM';
-    taskForm.querySelector('#taskDesc').value = taskData.description || '';
-    
-    Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
-    if (taskData.assignedTo && taskData.assignedTo.length > 0) {
-      const assignedIds = taskData.assignedTo.map(a => a._id);
-      Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => {
-        if (assignedIds.includes(cb.value)) cb.checked = true;
-      });
-    }
-    updateTaskAssigneeText();
-    taskModal.style.display = 'flex';
-  };
-
-  // --- Submissions ---
-  todoForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('aotms_token');
-    
-    const body = {
-      title: todoForm.querySelector('#todoTitle').value,
-      type: todoForm.querySelector('#todoType').value,
-      status: todoForm.querySelector('#todoStatus').value,
-      priority: todoForm.querySelector('#todoPriority').value,
-      description: todoForm.querySelector('#todoDesc').value
-    };
-
-    const assigneeIds = Array.from(todoAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked')).map(cb => cb.value).filter(val => val !== "");
-    body.assignedTo = assigneeIds.length > 0 ? assigneeIds : [];
-
-    try {
-      const url = `${API_BASE_URL}/todos/${editingTodoId}`;
-      await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify(body)
-      });
-      todoModal.style.display = 'none';
-      todoForm.reset();
-      editingTodoId = null;
-      fetchData();
-    } catch (err) { console.error(err); }
-  });
-
-  taskForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('aotms_token');
-    
-    const body = {
-      title: taskForm.querySelector('#taskTitle').value,
-      priority: taskForm.querySelector('#taskPriority').value,
-      status: taskForm.querySelector('#taskStatus').value,
-      description: taskForm.querySelector('#taskDesc').value,
-      type: 'TASK'
-    };
-
-    const assigneeIds = Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked')).map(cb => cb.value).filter(val => val !== "");
-    body.assignedTo = assigneeIds.length > 0 ? assigneeIds : [];
-
-    try {
-      const url = `${API_BASE_URL}/tasks/${editingTaskId}`;
-      await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify(body)
-      });
-      taskModal.style.display = 'none';
-      taskForm.reset();
-      editingTaskId = null;
-      fetchData();
-    } catch (err) { console.error(err); }
-  });
-
   container.deleteItem = async (id, itemType) => {
-    if (!confirm(`Are you sure you want to delete this ${itemType}?`)) return;
+    if (!confirm(\`Are you sure you want to delete this \${itemType}?\`)) return;
     try {
       const token = localStorage.getItem('aotms_token');
       const endpoint = itemType === 'TODO' ? 'todos' : 'tasks';
-      await fetch(`${API_BASE_URL}/${endpoint}/${id}`, {
+      await fetch(\`\${API_BASE_URL}/\${endpoint}/\${id}\`, {
         method: 'DELETE',
         headers: { 'Authorization': 'Bearer ' + token }
       });
@@ -360,8 +62,8 @@ export function renderTasks() {
     try {
       const token = localStorage.getItem('aotms_token');
       const [todosRes, tasksRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } }),
-        fetch(`${API_BASE_URL}/tasks`, { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch(\`\${API_BASE_URL}/todos\`, { headers: { 'Authorization': 'Bearer ' + token } }),
+        fetch(\`\${API_BASE_URL}/tasks\`, { headers: { 'Authorization': 'Bearer ' + token } })
       ]);
       const todosData = await todosRes.json();
       const tasksData = await tasksRes.json();
@@ -385,7 +87,7 @@ export function renderTasks() {
     }
 
     items.forEach(item => {
-      let badgeClass = 'badge-completed'; // It's always completed here
+      let badgeClass = 'badge-completed';
       
       let prioClass = 'badge-todo';
       if (item.priority === 'HIGH' || item.priority === 'URGENT') prioClass = 'badge-blocked';
@@ -395,39 +97,33 @@ export function renderTasks() {
       if (item.assignedTo && item.assignedTo.length > 0) {
         item.assignedTo.forEach(assignee => {
           const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
-          avatarsHtml += `<div class="avatar" title="Assigned to ${assignee.name || 'Unknown'}">${init}</div>`;
+          avatarsHtml += \`<div class="avatar" title="Assigned to \${assignee.name || 'Unknown'}">\${init}</div>\`;
         });
       } else {
-        avatarsHtml = `<div class="avatar" title="Unassigned / Me">ME</div>`;
+        avatarsHtml = \`<div class="avatar" title="Unassigned / Me">ME</div>\`;
       }
       
       const card = document.createElement('div');
       card.className = 'card';
-      card.style = 'opacity: 0.7;'; // Slight transparency for completed tasks
+      card.style = 'opacity: 0.7;'; 
       
-      card.innerHTML = `
+      card.innerHTML = \`
         <div class="card-header">
-          <h3 class="card-title" style="font-size: 18px;">${item.title}</h3>
-          <div style="display: flex; gap: -8px;">${avatarsHtml}</div>
+          <h3 class="card-title" style="font-size: 18px;">\${item.title}</h3>
+          <div style="display: flex; gap: -8px;">\${avatarsHtml}</div>
         </div>
         <div class="card-body">
-          <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">${item.description || 'No description'}</p>
+          <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">\${item.description || 'No description'}</p>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
-            <span class="badge" style="border: 1px solid var(--border-color);">${item.itemType === 'TODO' ? (item.type || 'PERSONAL') + ' TODO' : 'TASK'}</span>
-            <span class="badge ${prioClass}">${item.priority || 'MEDIUM'}</span>
-            <span class="badge ${badgeClass}">COMPLETED</span>
+            <span class="badge" style="border: 1px solid var(--border-color);">\${item.itemType === 'TODO' ? (item.type || 'PERSONAL') + ' TODO' : 'TASK'}</span>
+            <span class="badge \${prioClass}">\${item.priority || 'MEDIUM'}</span>
+            <span class="badge \${badgeClass}">COMPLETED</span>
           </div>
         </div>
-        <div class="card-footer">
-          <button class="btn btn-secondary edit-btn" style="padding: 0.25rem 0.5rem; font-size: 12px;">Edit</button>
+        <div class="card-footer" style="justify-content: flex-end;">
           <button class="btn btn-secondary del-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; color: #ef4444; border-color: #fca5a5;">Delete</button>
         </div>
-      `;
-      
-      card.querySelector('.edit-btn').addEventListener('click', () => {
-        if (item.itemType === 'TODO') container.openEditTodoModal(item);
-        else container.openEditTaskModal(item);
-      });
+      \`;
 
       card.querySelector('.del-btn').addEventListener('click', () => {
         container.deleteItem(item._id, item.itemType);

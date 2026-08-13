@@ -48,7 +48,6 @@ export function renderWorkToday() {
           <option value="TODO">TODO</option>
           <option value="IN_PROGRESS">IN PROGRESS</option>
           <option value="COMPLETED">COMPLETED</option>
-          <option value="BLOCKED">BLOCKED</option>
         </select>
         <button id="addExecutionBtn" class="btn btn-primary">+ Add Execution Point</button>
       </div>
@@ -97,7 +96,6 @@ export function renderWorkToday() {
                 <option value="TODO">TODO</option>
                 <option value="IN_PROGRESS" selected>IN PROGRESS</option>
                 <option value="COMPLETED">COMPLETED</option>
-                <option value="BLOCKED">BLOCKED</option>
               </select>
             </div>
             <div style="flex: 1;">
@@ -234,10 +232,30 @@ export function renderWorkToday() {
     try {
       const token = localStorage.getItem('aotms_token');
       const dateStr = getApiDateString(currentDate);
-      const res = await fetch(`${API_BASE_URL}/tasks?type=EXECUTION_POINT&date=${dateStr}`, {
-        headers: { 'Authorization': 'Bearer ' + token }
+      
+      const [epRes, tasksRes, todosRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/tasks?type=EXECUTION_POINT&date=${dateStr}`, { headers: { 'Authorization': 'Bearer ' + token } }),
+        fetch(`${API_BASE_URL}/tasks`, { headers: { 'Authorization': 'Bearer ' + token } }),
+        fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } })
+      ]);
+      
+      const epData = await epRes.json();
+      const allTasks = await tasksRes.json();
+      const allTodos = await todosRes.json();
+
+      const inProgressWork = [
+        ...allTasks,
+        ...allTodos
+      ].filter(item => item.status === 'IN_PROGRESS');
+
+      const combined = [...epData, ...inProgressWork];
+      const uniqueMap = new Map();
+      combined.forEach(item => {
+        if (!uniqueMap.has(item._id)) {
+          uniqueMap.set(item._id, item);
+        }
       });
-      allTasksForDay = await res.json();
+      allTasksForDay = Array.from(uniqueMap.values());
       
       // Update Stats
       const total = allTasksForDay.length;
