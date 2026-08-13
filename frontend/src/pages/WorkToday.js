@@ -32,7 +32,8 @@ export function renderWorkToday() {
           <button id="prevDateBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">&lt;</button>
           <div id="dateDisplay" style="font-weight: 500; font-size: 18px; width: 120px; text-align: center;">${getFormattedDateString(currentDate)}</div>
           <button id="nextDateBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">&gt;</button>
-          <button id="todayBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 14px;">Go to Today</button>
+          <input type="date" id="datePickerBtn" class="input" style="padding: 0.1rem 0.25rem; font-size: 14px; margin-left: 0.5rem;" title="Select a specific date">
+          <button id="todayBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 14px; margin-left: 0.5rem;">Go to Today</button>
         </div>
       </div>
       
@@ -121,6 +122,7 @@ export function renderWorkToday() {
   const prevBtn = container.querySelector('#prevDateBtn');
   const nextBtn = container.querySelector('#nextDateBtn');
   const todayBtn = container.querySelector('#todayBtn');
+  const datePickerBtn = container.querySelector('#datePickerBtn');
   const dateDisplay = container.querySelector('#dateDisplay');
   const statsLabel = container.querySelector('#statsLabel');
   const statsBar = container.querySelector('#statsBar');
@@ -204,6 +206,15 @@ export function renderWorkToday() {
     currentDate = new Date();
     dateDisplay.textContent = getFormattedDateString(currentDate);
     fetchData();
+  });
+  datePickerBtn.addEventListener('change', (e) => {
+    if (e.target.value) {
+      // Create date object and adjust for timezone issues to pick correct local date
+      const selected = new Date(e.target.value);
+      currentDate = new Date(selected.getTime() + Math.abs(selected.getTimezoneOffset() * 60000));
+      dateDisplay.textContent = getFormattedDateString(currentDate);
+      fetchData();
+    }
   });
 
   // Filter Logic
