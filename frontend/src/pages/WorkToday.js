@@ -32,8 +32,7 @@ export function renderWorkToday() {
           <button id="prevDateBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">&lt;</button>
           <div id="dateDisplay" style="font-weight: 500; font-size: 18px; width: 120px; text-align: center;">${getFormattedDateString(currentDate)}</div>
           <button id="nextDateBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem;">&gt;</button>
-          <input type="date" id="datePickerBtn" class="input" style="padding: 0.1rem 0.25rem; font-size: 14px; margin-left: 0.5rem;" title="Select a specific date">
-          <button id="todayBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 14px; margin-left: 0.5rem;">Go to Today</button>
+          <button id="todayBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 14px;">Go to Today</button>
         </div>
       </div>
       
@@ -122,7 +121,6 @@ export function renderWorkToday() {
   const prevBtn = container.querySelector('#prevDateBtn');
   const nextBtn = container.querySelector('#nextDateBtn');
   const todayBtn = container.querySelector('#todayBtn');
-  const datePickerBtn = container.querySelector('#datePickerBtn');
   const dateDisplay = container.querySelector('#dateDisplay');
   const statsLabel = container.querySelector('#statsLabel');
   const statsBar = container.querySelector('#statsBar');
@@ -206,15 +204,6 @@ export function renderWorkToday() {
     currentDate = new Date();
     dateDisplay.textContent = getFormattedDateString(currentDate);
     fetchData();
-  });
-  datePickerBtn.addEventListener('change', (e) => {
-    if (e.target.value) {
-      // Create date object and adjust for timezone issues to pick correct local date
-      const selected = new Date(e.target.value);
-      currentDate = new Date(selected.getTime() + Math.abs(selected.getTimezoneOffset() * 60000));
-      dateDisplay.textContent = getFormattedDateString(currentDate);
-      fetchData();
-    }
   });
 
   // Filter Logic
@@ -337,6 +326,11 @@ export function renderWorkToday() {
       card.className = 'card';
       if (cardStyle) card.style = cardStyle;
       
+      let moveTomorrowHtml = '';
+      if (task.type === 'EXECUTION_POINT' && task.status !== 'COMPLETED') {
+        moveTomorrowHtml = `<button class="btn btn-secondary move-tomorrow-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; margin-right: 0.5rem;">Move to Tomorrow</button>`;
+      }
+      
       card.innerHTML = `
         <div class="card-header">
           <h3 class="card-title" style="font-size: 18px;">${task.title}</h3>
@@ -360,8 +354,8 @@ export function renderWorkToday() {
             <div class="update-text" style="display: none; margin-top: 8px; font-size: 13px; color: var(--text-secondary); white-space: pre-wrap;">${displayDesc}</div>
           </div>
         </div>
-        <div class="card-footer">
-          <span class="metadata"></span>
+        <div class="card-footer" style="justify-content: flex-end;">
+          ${moveTomorrowHtml}
           <button class="btn btn-secondary edit-btn" style="padding: 0.25rem 0.5rem; font-size: 12px;">Edit</button>
         </div>
       `;
@@ -377,6 +371,36 @@ export function renderWorkToday() {
         container.openEditModal(task);
       });
       
+      if (task.type === 'EXECUTION_POINT' && task.status !== 'COMPLETED') {
+        const moveBtn = card.querySelector('.move-tomorrow-btn');
+        moveBtn.addEventListener('click', async () => {
+          try {
+            const token = localStorage.getItem('aotms_token');
+            const nextDay = new Date(currentDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            
+            // Replicate getApiDateString logic inline to be safe
+            const dd = String(nextDay.getDate()).padStart(2, '0');
+            const mm = String(nextDay.getMonth() + 1).padStart(2, '0');
+            const yy = nextDay.getFullYear();
+            const nextDayStr = `${dd}-${mm}-${yy}`;
+            
+            await fetch(`${API_BASE_URL}/tasks/${task._id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+              },
+              body: JSON.stringify({ date: nextDayStr })
+            });
+            fetchData();
+          } catch (err) {
+            console.error('Failed to move to tomorrow', err);
+            alert('Failed to move to tomorrow');
+          }
+        });
+      }
+
       tbody.appendChild(card);
     });
   };
