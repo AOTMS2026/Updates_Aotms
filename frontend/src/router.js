@@ -4,11 +4,7 @@ import { renderSidebar, renderTopHeader } from './components/Sidebar.js';
 import { renderWorkToday } from './pages/WorkToday.js';
 import { renderTasks } from './pages/Tasks.js';
 import { renderTodo } from './pages/Todo.js';
-import { renderIssues } from './pages/Issues.js';
-import { renderIssueDetail } from './pages/IssueDetail.js';
-import { renderReminders } from './pages/Reminders.js';
 import { renderTeamMembers } from './pages/TeamMembers.js';
-import { renderReports } from './pages/Reports.js';
 import { renderSettings } from './pages/Settings.js';
 import { renderLanding } from './pages/Landing.js';
 
@@ -65,11 +61,7 @@ export function initRouter() {
       if (path === '#/work/today') pageTitle = "Today's Work";
       else if (path === '#/work/tasks') pageTitle = "Completed Tasks";
       else if (path === '#/work/todo') pageTitle = "TODO";
-      else if (path === '#/tracking/issues') pageTitle = "Issues";
-      else if (path.startsWith('#/tracking/issues/')) pageTitle = "Issue Detail";
-      else if (path === '#/tracking/reminders') pageTitle = "Reminders";
       else if (path === '#/team') pageTitle = "Team Members";
-      else if (path === '#/work/reports') pageTitle = "Reports";
       else if (path === '#/settings') pageTitle = "Settings";
       
       const topHeader = renderTopHeader(pageTitle);
@@ -91,17 +83,8 @@ export function initRouter() {
         mainContent.appendChild(renderTasks());
       } else if (path === '#/work/todo') {
         mainContent.appendChild(renderTodo());
-      } else if (path === '#/tracking/issues') {
-        mainContent.appendChild(renderIssues());
-      } else if (path.startsWith('#/tracking/issues/')) {
-        const id = path.split('/')[3];
-        mainContent.appendChild(renderIssueDetail(id));
-      } else if (path === '#/tracking/reminders') {
-        mainContent.appendChild(renderReminders());
       } else if (path === '#/team') {
         mainContent.appendChild(renderTeamMembers());
-      } else if (path === '#/work/reports') {
-        mainContent.appendChild(renderReports());
       } else if (path === '#/settings') {
         mainContent.appendChild(renderSettings());
       } else {

@@ -32,10 +32,6 @@ export function renderSidebar() {
       <a href="#/team" class="sidebar-link">Team Members</a>
       ` : ''}
 
-      <div class="nav-section">TRACKING</div>
-      <a href="#/tracking/issues" class="sidebar-link">Issues</a>
-      <a href="#/tracking/reminders" class="sidebar-link">Reminders</a>
-      <a href="#/work/reports" class="sidebar-link">Reports</a>
 
       ${isAdmin ? `
       <div class="nav-section">SYSTEM</div>
