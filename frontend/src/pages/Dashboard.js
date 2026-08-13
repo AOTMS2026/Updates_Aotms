@@ -10,7 +10,7 @@ export function renderDashboard() {
   container.innerHTML = `
     <div style="margin-bottom: 2rem;">
       <h1 class="page-title" style="margin-bottom: 0.25rem;">Dashboard</h1>
-      <p class="body-text">\${today}</p>
+      <p class="body-text">${today}</p>
     </div>
 
     <!-- KPI Cards -->
@@ -82,9 +82,9 @@ async function fetchDashboardData(container) {
 
     // Fetch tasks, todos, and users concurrently
     const [tasksRes, todosRes, usersRes] = await Promise.all([
-      fetch(\`\${API_BASE_URL}/tasks\`, { headers: { 'Authorization': 'Bearer ' + token } }),
-      fetch(\`\${API_BASE_URL}/todos\`, { headers: { 'Authorization': 'Bearer ' + token } }),
-      fetch(\`\${API_BASE_URL}/users\`, { headers: { 'Authorization': 'Bearer ' + token } })
+      fetch(`${API_BASE_URL}/tasks`, { headers: { 'Authorization': 'Bearer ' + token } }),
+      fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } }),
+      fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } })
     ]);
 
     const tasks = await tasksRes.json();
@@ -131,13 +131,13 @@ async function fetchDashboardData(container) {
         }
 
         const tr = document.createElement('tr');
-        tr.innerHTML = \`
-          <td style="font-weight: 500;">\${item.title}</td>
-          <td class="body-text" style="font-size: 12px; opacity: 0.8;">\${item.itemType}</td>
-          <td class="body-text">\${assigneeStr}</td>
-          <td><span class="badge" style="border: 1px solid var(--border-color);">\${item.priority || 'MEDIUM'}</span></td>
-          <td><span class="badge \${badgeClass}">\${statusText}</span></td>
-        \`;
+        tr.innerHTML = `
+          <td style="font-weight: 500;">${item.title}</td>
+          <td class="body-text" style="font-size: 12px; opacity: 0.8;">${item.itemType}</td>
+          <td class="body-text">${assigneeStr}</td>
+          <td><span class="badge" style="border: 1px solid var(--border-color);">${item.priority || 'MEDIUM'}</span></td>
+          <td><span class="badge ${badgeClass}">${statusText}</span></td>
+        `;
         tbody.appendChild(tr);
       });
     }
@@ -165,17 +165,17 @@ async function fetchDashboardData(container) {
 
         const div = document.createElement('div');
         div.style.marginBottom = '1.5rem';
-        div.innerHTML = \`
+        div.innerHTML = `
           <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span class="body-text" style="color: var(--text-primary); font-weight: 500;">\${user.name}</span>
-            <span class="body-text">\${userProgress}%</span>
+            <span class="body-text" style="color: var(--text-primary); font-weight: 500;">${user.name}</span>
+            <span class="body-text">${userProgress}%</span>
           </div>
           <div class="progress-wrapper">
             <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: \${userProgress}%;"></div>
+              <div class="progress-bar-fill" style="width: ${userProgress}%;"></div>
             </div>
           </div>
-        \`;
+        `;
         teamContainer.appendChild(div);
       });
     }
