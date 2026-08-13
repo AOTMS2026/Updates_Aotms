@@ -70,7 +70,11 @@ router.get('/', authMiddleware, async (req, res) => {
             startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(req.query.date);
             endOfDay.setHours(23, 59, 59, 999);
-            filter.createdAt = { $gte: startOfDay, $lte: endOfDay };
+            filter.$or = [
+                { date: { $gte: startOfDay, $lte: endOfDay } },
+                { date: { $exists: false }, createdAt: { $gte: startOfDay, $lte: endOfDay } },
+                { date: null, createdAt: { $gte: startOfDay, $lte: endOfDay } }
+            ];
         }
         
         const tasks = await Task.find(filter).populate('assignedTo', 'name email').populate('feature', 'title');

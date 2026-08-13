@@ -379,11 +379,7 @@ export function renderWorkToday() {
             const nextDay = new Date(currentDate);
             nextDay.setDate(nextDay.getDate() + 1);
             
-            // Replicate getApiDateString logic inline to be safe
-            const dd = String(nextDay.getDate()).padStart(2, '0');
-            const mm = String(nextDay.getMonth() + 1).padStart(2, '0');
-            const yy = nextDay.getFullYear();
-            const nextDayStr = `${dd}-${mm}-${yy}`;
+            const nextDayStr = nextDay.toISOString();
             
             await fetch(`${API_BASE_URL}/tasks/${task._id}`, {
               method: 'PUT',
@@ -513,7 +509,8 @@ export function renderWorkToday() {
       priority: form.querySelector('#execPriority').value,
       status: form.querySelector('#execStatus').value,
       description: descriptionText,
-      type: 'EXECUTION_POINT'
+      type: 'EXECUTION_POINT',
+      date: currentDate.toISOString()
     };
     
     if (featureId && featureId !== 'other') body.feature = featureId;
