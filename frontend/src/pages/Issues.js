@@ -237,22 +237,6 @@ export function renderIssues() {
 
       const initials = i.reportedBy ? i.reportedBy.name.substring(0,2).toUpperCase() : '??';
 
-      const card = document.createElement('div');
-      card.className = 'card';
-      if (cardStyle) card.style = cardStyle;
-      
-      card.innerHTML = `
-        <div class="card-header">
-          <h3 class="card-title" style="font-size: 18px;">${i.title}</h3>
-          <div class="avatar" title="Reported by ${i.reportedBy ? i.reportedBy.name : 'Unknown'}">${initials}</div>
-        </div>
-        <div class="card-body">
-          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-            <span class="badge" style="border: 1px solid var(--border-color);">${i.priority} Prio</span>
-            <span class="badge" style="border: 1px solid var(--border-color);">${i.severity} Sev</span>
-          </div>
-          <span class="badge ${badgeClass}">${statusText}</span>
-        </div>
       let avatarsHtml = '';
       if (i.assignedTo && i.assignedTo.length > 0) {
         i.assignedTo.forEach(assignee => {
