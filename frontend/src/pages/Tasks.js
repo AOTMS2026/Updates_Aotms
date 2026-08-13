@@ -38,11 +38,15 @@ export function renderTasks() {
             <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Title *</label>
             <input type="text" id="taskTitle" class="input" required>
           </div>
-          <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To (Hold Ctrl/Cmd to select multiple)</label>
-            <select id="taskAssignee" class="input" multiple size="3">
-              <option value="">Unassigned</option>
-            </select>
+          <div style="margin-bottom: 1rem; position: relative;">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To</label>
+            <div id="taskAssigneeBtn" class="input" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px;">
+              <span id="taskAssigneeText">Select Assignees...</span>
+              <span style="font-size: 12px; color: var(--text-muted);">▼</span>
+            </div>
+            <div id="taskAssigneeDropdown" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: var(--shadow-md); padding: 0.5rem; flex-direction: column; gap: 0.25rem; margin-top: 4px;">
+              <!-- Dynamic Checkboxes -->
+            </div>
           </div>
           <div style="margin-bottom: 1rem;">
             <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Feature</label>
@@ -87,8 +91,34 @@ export function renderTasks() {
   const form = container.querySelector('#taskForm');
   const featureSelect = container.querySelector('#taskFeature');
   const customFeatureDiv = container.querySelector('#customFeatureDiv');
-  const assigneeSelect = container.querySelector('#taskAssignee');
   const modalTitle = container.querySelector('#modalTitle');
+
+  const taskAssigneeBtn = container.querySelector('#taskAssigneeBtn');
+  const taskAssigneeDropdown = container.querySelector('#taskAssigneeDropdown');
+  const taskAssigneeText = container.querySelector('#taskAssigneeText');
+
+  taskAssigneeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isVisible = taskAssigneeDropdown.style.display === 'flex';
+    taskAssigneeDropdown.style.display = isVisible ? 'none' : 'flex';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!taskAssigneeBtn.contains(e.target) && !taskAssigneeDropdown.contains(e.target)) {
+      taskAssigneeDropdown.style.display = 'none';
+    }
+  });
+
+  const updateAssigneeText = () => {
+    const checked = Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    if (checked.length === 0) {
+      taskAssigneeText.textContent = 'Unassigned';
+    } else if (checked.length === 1) {
+      taskAssigneeText.textContent = checked[0].nextElementSibling.textContent;
+    } else {
+      taskAssigneeText.textContent = `${checked.length} employees selected`;
+    }
+  };
 
   featureSelect.addEventListener('change', (e) => {
     if (e.target.value === 'other') {
@@ -114,13 +144,20 @@ export function renderTasks() {
 
       const resU = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
       const users = await resU.json();
-      assigneeSelect.innerHTML = '<option value="">Unassigned</option>';
+      taskAssigneeDropdown.innerHTML = '';
       users.forEach(u => {
-        const opt = document.createElement('option');
-        opt.value = u._id;
-        opt.textContent = u.name;
-        assigneeSelect.appendChild(opt);
+        const label = document.createElement('label');
+        label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
+        label.onmouseover = () => label.style.background = 'var(--bg-primary)';
+        label.onmouseout = () => label.style.background = 'transparent';
+        
+        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
+        
+        label.querySelector('.assignee-checkbox').addEventListener('change', updateAssigneeText);
+        
+        taskAssigneeDropdown.appendChild(label);
       });
+      updateAssigneeText();
     } catch (e) { console.error(e); }
   };
 
@@ -148,15 +185,14 @@ export function renderTasks() {
     form.querySelector('#taskPriority').value = taskData.priority || 'MEDIUM';
     
     // Clear selections first
-    Array.from(assigneeSelect.options).forEach(opt => opt.selected = false);
+    Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => cb.checked = false);
     if (taskData.assignedTo && taskData.assignedTo.length > 0) {
       const assignedIds = taskData.assignedTo.map(a => a._id);
-      Array.from(assigneeSelect.options).forEach(opt => {
-        if (assignedIds.includes(opt.value)) opt.selected = true;
+      Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox')).forEach(cb => {
+        if (assignedIds.includes(cb.value)) cb.checked = true;
       });
-    } else {
-      assigneeSelect.options[0].selected = true; // Select 'Unassigned'
     }
+    updateAssigneeText();
 
     let rawDesc = taskData.description || '';
     if (!taskData.feature && rawDesc.includes('[Custom Feature:')) {
@@ -203,8 +239,8 @@ export function renderTasks() {
       body.feature = null;
     }
 
-    const assigneeOptions = Array.from(form.querySelector('#taskAssignee').selectedOptions);
-    const assigneeIds = assigneeOptions.map(opt => opt.value).filter(val => val !== "");
+    const assigneeCheckboxes = Array.from(taskAssigneeDropdown.querySelectorAll('.assignee-checkbox:checked'));
+    const assigneeIds = assigneeCheckboxes.map(cb => cb.value).filter(val => val !== "");
 
     if (assigneeIds.length > 0) {
       body.assignedTo = assigneeIds;
