@@ -215,6 +215,7 @@ export function renderWorkToday() {
     currentStatusFilter = filterStatus.value;
 
     let filtered = allTasksForDay.filter(task => {
+      if (task.status === 'COMPLETED') return false; // Hide completed tasks
       if (currentMemberFilter && (!task.assignedTo || !task.assignedTo.some(a => a._id === currentMemberFilter))) return false;
       if (currentFeatureFilter && (!task.feature || task.feature._id !== currentFeatureFilter)) return false;
       if (currentStatusFilter && task.status !== currentStatusFilter) return false;

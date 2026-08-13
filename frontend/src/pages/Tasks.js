@@ -361,7 +361,7 @@ export function renderTasks() {
       const token = localStorage.getItem('aotms_token');
       const [todosRes, tasksRes] = await Promise.all([
         fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } }),
-        fetch(`${API_BASE_URL}/tasks?type=TASK`, { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch(`${API_BASE_URL}/tasks`, { headers: { 'Authorization': 'Bearer ' + token } })
       ]);
       const todosData = await todosRes.json();
       const tasksData = await tasksRes.json();
