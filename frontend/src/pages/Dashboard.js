@@ -33,7 +33,7 @@ export function renderDashboard() {
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 2rem;">
+    <div>
       
       <!-- Active Work Table -->
       <div>
@@ -58,14 +58,6 @@ export function renderDashboard() {
         </div>
       </div>
 
-      <!-- Team Progress -->
-      <div>
-        <h2 class="section-title">Team Progress</h2>
-        <div class="card" style="margin-top: 1rem; padding: 1.25rem;" id="team-progress-container">
-          <div style="text-align: center; color: var(--text-muted);">Loading team...</div>
-        </div>
-      </div>
-
     </div>
   `;
 
@@ -80,16 +72,14 @@ async function fetchDashboardData(container) {
     const token = localStorage.getItem('aotms_token');
     if (!token) return;
 
-    // Fetch tasks, todos, and users concurrently
-    const [tasksRes, todosRes, usersRes] = await Promise.all([
+    // Fetch tasks and todos concurrently
+    const [tasksRes, todosRes] = await Promise.all([
       fetch(`${API_BASE_URL}/tasks`, { headers: { 'Authorization': 'Bearer ' + token } }),
-      fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } }),
-      fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } })
+      fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } })
     ]);
 
     const tasks = await tasksRes.json();
     const todos = await todosRes.json();
-    const users = await usersRes.json();
 
     // Combine all work items
     const allWork = [
@@ -142,42 +132,6 @@ async function fetchDashboardData(container) {
       });
     }
 
-    // Populate Team Progress
-    const teamContainer = container.querySelector('#team-progress-container');
-    teamContainer.innerHTML = '';
-    
-    if (users.length === 0) {
-      teamContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No team members found.</div>';
-    } else {
-      users.forEach(user => {
-        // Calculate progress based on allWork assigned to this user
-        const userWork = allWork.filter(item => {
-          if (!item.assignedTo) return false;
-          if (Array.isArray(item.assignedTo)) {
-            return item.assignedTo.some(a => a._id === user._id);
-          }
-          return item.assignedTo._id === user._id; // Fallback for old Task schema
-        });
-
-        const userTotal = userWork.length;
-        const userCompleted = userWork.filter(t => t.status === 'COMPLETED').length;
-        const userProgress = userTotal === 0 ? 0 : Math.round((userCompleted / userTotal) * 100);
-
-        const div = document.createElement('div');
-        div.style.marginBottom = '1.5rem';
-        div.innerHTML = `
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-            <span class="body-text" style="color: var(--text-primary); font-weight: 500;">${user.name}</span>
-            <span class="body-text">${userProgress}%</span>
-          </div>
-          <div class="progress-wrapper">
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill" style="width: ${userProgress}%;"></div>
-            </div>
-          </div>
-        `;
-        teamContainer.appendChild(div);
-      });
     }
 
   } catch (err) {
