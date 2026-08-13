@@ -39,8 +39,8 @@ export function renderTasks() {
             <input type="text" id="taskTitle" class="input" required>
           </div>
           <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To</label>
-            <select id="taskAssignee" class="input">
+            <label style="display: block; margin-bottom: 0.25rem; font-weight: 500;">Assigned To (Hold Ctrl/Cmd to select multiple)</label>
+            <select id="taskAssignee" class="input" multiple size="3">
               <option value="">Unassigned</option>
             </select>
           </div>
@@ -147,10 +147,15 @@ export function renderTasks() {
     form.querySelector('#taskStatus').value = taskData.status || 'TODO';
     form.querySelector('#taskPriority').value = taskData.priority || 'MEDIUM';
     
-    if (taskData.assignedTo && taskData.assignedTo._id) {
-      assigneeSelect.value = taskData.assignedTo._id;
+    // Clear selections first
+    Array.from(assigneeSelect.options).forEach(opt => opt.selected = false);
+    if (taskData.assignedTo && taskData.assignedTo.length > 0) {
+      const assignedIds = taskData.assignedTo.map(a => a._id);
+      Array.from(assigneeSelect.options).forEach(opt => {
+        if (assignedIds.includes(opt.value)) opt.selected = true;
+      });
     } else {
-      assigneeSelect.value = "";
+      assigneeSelect.options[0].selected = true; // Select 'Unassigned'
     }
 
     let rawDesc = taskData.description || '';
@@ -198,11 +203,13 @@ export function renderTasks() {
       body.feature = null;
     }
 
-    const assigneeId = form.querySelector('#taskAssignee').value;
-    if (assigneeId) {
-      body.assignedTo = assigneeId;
+    const assigneeOptions = Array.from(form.querySelector('#taskAssignee').selectedOptions);
+    const assigneeIds = assigneeOptions.map(opt => opt.value).filter(val => val !== "");
+
+    if (assigneeIds.length > 0) {
+      body.assignedTo = assigneeIds;
     } else {
-      body.assignedTo = null;
+      body.assignedTo = [];
     }
 
     try {
@@ -263,7 +270,15 @@ async function fetchTasks(container) {
         }
       }
 
-      const initials = task.assignedTo ? task.assignedTo.name.substring(0,2).toUpperCase() : '?';
+      let avatarsHtml = '';
+      if (task.assignedTo && task.assignedTo.length > 0) {
+        task.assignedTo.forEach(assignee => {
+          const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
+          avatarsHtml += `<div class="avatar" title="Owner: ${assignee.name || 'Unknown'}">${init}</div>`;
+        });
+      } else {
+        avatarsHtml = `<div class="avatar" title="Owner: Unassigned">?</div>`;
+      }
 
       const card = document.createElement('div');
       card.className = 'card';
@@ -272,7 +287,7 @@ async function fetchTasks(container) {
       card.innerHTML = `
         <div class="card-header">
           <h3 class="card-title" style="font-size: 18px;">${task.title}</h3>
-          <div class="avatar" title="Owner: ${task.assignedTo ? task.assignedTo.name : 'Unassigned'}">${initials}</div>
+          <div style="display: flex; gap: -8px;">${avatarsHtml}</div>
         </div>
         <div class="card-body">
           <p class="metadata" style="margin-bottom: 1rem;">Feature: <span style="color: var(--text-primary);">${displayFeature}</span></p>
