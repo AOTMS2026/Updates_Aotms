@@ -14,6 +14,7 @@ export function renderTodo() {
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
       <div style="display: flex; gap: 1rem;">
         <input type="text" id="searchWork" class="input" placeholder="Search work..." style="width: 250px;">
+        <input type="date" id="filterDate" class="input" style="width: 150px;" title="Filter by Created Date">
         <select id="filterType" class="input" style="width: 150px;">
           <option value="">All Types</option>
           <option value="TODO">Todo (Personal/Team)</option>
@@ -375,11 +376,16 @@ export function renderTodo() {
     currentStatusFilter = filterStatus.value;
     currentTypeFilter = filterType.value;
     const searchTerm = searchInput.value.toLowerCase();
+    const filterDateVal = container.querySelector('#filterDate').value;
 
     let filtered = allWork.filter(item => {
       if (currentStatusFilter && item.status !== currentStatusFilter) return false;
       if (currentTypeFilter && item.itemType !== currentTypeFilter) return false;
       if (searchTerm && !item.title.toLowerCase().includes(searchTerm)) return false;
+      if (filterDateVal && item.createdAt) {
+        const itemDate = new Date(item.createdAt).toISOString().split('T')[0];
+        if (itemDate !== filterDateVal) return false;
+      }
       return true;
     });
 
@@ -389,6 +395,7 @@ export function renderTodo() {
   searchInput.addEventListener('input', applyFiltersAndRender);
   filterStatus.addEventListener('change', applyFiltersAndRender);
   filterType.addEventListener('change', applyFiltersAndRender);
+  container.querySelector('#filterDate').addEventListener('change', applyFiltersAndRender);
 
   const fetchData = async () => {
     tbody.innerHTML = '<div style="text-align: center; color: var(--text-muted); width: 100%;">Loading...</div>';
@@ -442,6 +449,7 @@ export function renderTodo() {
       const card = document.createElement('div');
       card.className = 'card';
       const svgEye = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; vertical-align: middle; margin-right: 4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      const addedDate = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Unknown Date';
 
       card.innerHTML = `
         <div class="card-header">
@@ -461,9 +469,12 @@ export function renderTodo() {
             <div class="desc-text" style="display: none; margin-top: 8px; font-size: 13px; color: var(--text-secondary); white-space: pre-wrap;">${item.description || 'No description provided.'}</div>
           </div>
         </div>
-        <div class="card-footer">
-          <button class="btn btn-secondary edit-btn" style="padding: 0.25rem 0.5rem; font-size: 12px;">Edit</button>
-          <button class="btn btn-secondary del-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; color: #ef4444; border-color: #fca5a5;">Delete</button>
+        <div class="card-footer" style="justify-content: space-between; align-items: center;">
+          <span class="metadata">Added: ${addedDate}</span>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-secondary edit-btn" style="padding: 0.25rem 0.5rem; font-size: 12px;">Edit</button>
+            <button class="btn btn-secondary del-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; color: #ef4444; border-color: #fca5a5;">Delete</button>
+          </div>
         </div>
       `;
       
