@@ -178,7 +178,7 @@ export function renderTasks() {
       const checked = Array.from(dropdown.querySelectorAll('.assignee-checkbox:checked'));
       if (checked.length === 0) textEl.textContent = defaultText;
       else if (checked.length === 1) textEl.textContent = checked[0].nextElementSibling.textContent;
-      else textEl.textContent = \`\${checked.length} employees selected\`;
+      else textEl.textContent = `${checked.length} employees selected`;
     };
   };
 
@@ -197,7 +197,7 @@ export function renderTasks() {
   const loadUsers = async (dropdown, updateTextFn) => {
     try {
       const token = localStorage.getItem('aotms_token');
-      const res = await fetch(\`\${API_BASE_URL}/users\`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': 'Bearer ' + token } });
       const users = await res.json();
       dropdown.innerHTML = '';
       users.forEach(u => {
@@ -205,7 +205,7 @@ export function renderTasks() {
         label.style = 'display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-sm); transition: background 0.2s;';
         label.onmouseover = () => label.style.background = 'var(--bg-primary)';
         label.onmouseout = () => label.style.background = 'transparent';
-        label.innerHTML = \`<input type="checkbox" value="\${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>\${u.name}</span>\`;
+        label.innerHTML = `<input type="checkbox" value="${u._id}" class="assignee-checkbox" style="cursor: pointer;"><span>${u.name}</span>`;
         label.querySelector('.assignee-checkbox').addEventListener('change', updateTextFn);
         dropdown.appendChild(label);
       });
@@ -283,7 +283,7 @@ export function renderTasks() {
     body.assignedTo = assigneeIds.length > 0 ? assigneeIds : [];
 
     try {
-      const url = \`\${API_BASE_URL}/todos/\${editingTodoId}\`;
+      const url = `${API_BASE_URL}/todos/${editingTodoId}`;
       await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -312,7 +312,7 @@ export function renderTasks() {
     body.assignedTo = assigneeIds.length > 0 ? assigneeIds : [];
 
     try {
-      const url = \`\${API_BASE_URL}/tasks/\${editingTaskId}\`;
+      const url = `${API_BASE_URL}/tasks/${editingTaskId}`;
       await fetch(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -326,11 +326,11 @@ export function renderTasks() {
   });
 
   container.deleteItem = async (id, itemType) => {
-    if (!confirm(\`Are you sure you want to delete this \${itemType}?\`)) return;
+    if (!confirm(`Are you sure you want to delete this ${itemType}?`)) return;
     try {
       const token = localStorage.getItem('aotms_token');
       const endpoint = itemType === 'TODO' ? 'todos' : 'tasks';
-      await fetch(\`\${API_BASE_URL}/\${endpoint}/\${id}\`, {
+      await fetch(`${API_BASE_URL}/${endpoint}/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': 'Bearer ' + token }
       });
@@ -360,8 +360,8 @@ export function renderTasks() {
     try {
       const token = localStorage.getItem('aotms_token');
       const [todosRes, tasksRes] = await Promise.all([
-        fetch(\`\${API_BASE_URL}/todos\`, { headers: { 'Authorization': 'Bearer ' + token } }),
-        fetch(\`\${API_BASE_URL}/tasks?type=TASK\`, { headers: { 'Authorization': 'Bearer ' + token } })
+        fetch(`${API_BASE_URL}/todos`, { headers: { 'Authorization': 'Bearer ' + token } }),
+        fetch(`${API_BASE_URL}/tasks?type=TASK`, { headers: { 'Authorization': 'Bearer ' + token } })
       ]);
       const todosData = await todosRes.json();
       const tasksData = await tasksRes.json();
@@ -395,34 +395,34 @@ export function renderTasks() {
       if (item.assignedTo && item.assignedTo.length > 0) {
         item.assignedTo.forEach(assignee => {
           const init = assignee.name ? assignee.name.substring(0, 2).toUpperCase() : '?';
-          avatarsHtml += \`<div class="avatar" title="Assigned to \${assignee.name || 'Unknown'}">\${init}</div>\`;
+          avatarsHtml += `<div class="avatar" title="Assigned to ${assignee.name || 'Unknown'}">${init}</div>`;
         });
       } else {
-        avatarsHtml = \`<div class="avatar" title="Unassigned / Me">ME</div>\`;
+        avatarsHtml = `<div class="avatar" title="Unassigned / Me">ME</div>`;
       }
       
       const card = document.createElement('div');
       card.className = 'card';
       card.style = 'opacity: 0.7;'; // Slight transparency for completed tasks
       
-      card.innerHTML = \`
+      card.innerHTML = `
         <div class="card-header">
-          <h3 class="card-title" style="font-size: 18px;">\${item.title}</h3>
-          <div style="display: flex; gap: -8px;">\${avatarsHtml}</div>
+          <h3 class="card-title" style="font-size: 18px;">${item.title}</h3>
+          <div style="display: flex; gap: -8px;">${avatarsHtml}</div>
         </div>
         <div class="card-body">
-          <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">\${item.description || 'No description'}</p>
+          <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">${item.description || 'No description'}</p>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
-            <span class="badge" style="border: 1px solid var(--border-color);">\${item.itemType === 'TODO' ? (item.type || 'PERSONAL') + ' TODO' : 'TASK'}</span>
-            <span class="badge \${prioClass}">\${item.priority || 'MEDIUM'}</span>
-            <span class="badge \${badgeClass}">COMPLETED</span>
+            <span class="badge" style="border: 1px solid var(--border-color);">${item.itemType === 'TODO' ? (item.type || 'PERSONAL') + ' TODO' : 'TASK'}</span>
+            <span class="badge ${prioClass}">${item.priority || 'MEDIUM'}</span>
+            <span class="badge ${badgeClass}">COMPLETED</span>
           </div>
         </div>
         <div class="card-footer">
           <button class="btn btn-secondary edit-btn" style="padding: 0.25rem 0.5rem; font-size: 12px;">Edit</button>
           <button class="btn btn-secondary del-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; color: #ef4444; border-color: #fca5a5;">Delete</button>
         </div>
-      \`;
+      `;
       
       card.querySelector('.edit-btn').addEventListener('click', () => {
         if (item.itemType === 'TODO') container.openEditTodoModal(item);
