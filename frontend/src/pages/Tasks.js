@@ -107,23 +107,37 @@ export function renderTasks() {
       card.className = 'card';
       card.style = 'opacity: 0.7;'; 
       
+      const svgEye = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor: pointer; vertical-align: middle; margin-right: 4px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      const completedDate = item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : 'Unknown Date';
+
       card.innerHTML = `
         <div class="card-header">
           <h3 class="card-title" style="font-size: 18px;">${item.title}</h3>
           <div style="display: flex; gap: -8px;">${avatarsHtml}</div>
         </div>
         <div class="card-body">
-          <p class="body-text" style="margin-bottom: 1rem; white-space: pre-wrap;">${item.description || 'No description'}</p>
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
             <span class="badge" style="border: 1px solid var(--border-color);">${item.itemType === 'TODO' ? (item.type || 'PERSONAL') + ' TODO' : 'TASK'}</span>
             <span class="badge ${prioClass}">${item.priority || 'MEDIUM'}</span>
             <span class="badge ${badgeClass}">COMPLETED</span>
           </div>
+          <div style="background: var(--bg-surface); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div class="desc-reveal-btn" style="color: var(--accent-primary); cursor: pointer; display: flex; align-items: center;">
+              ${svgEye} <span style="font-size: 13px; font-weight: 500;">View Description</span>
+            </div>
+            <div class="desc-text" style="display: none; margin-top: 8px; font-size: 13px; color: var(--text-secondary); white-space: pre-wrap;">${item.description || 'No description provided.'}</div>
+          </div>
         </div>
-        <div class="card-footer" style="justify-content: flex-end;">
+        <div class="card-footer" style="justify-content: space-between; align-items: center;">
+          <span class="metadata">Completed: ${completedDate}</span>
           <button class="btn btn-secondary del-btn" style="padding: 0.25rem 0.5rem; font-size: 12px; color: #ef4444; border-color: #fca5a5;">Delete</button>
         </div>
       `;
+
+      card.querySelector('.desc-reveal-btn').addEventListener('click', () => {
+        const descText = card.querySelector('.desc-text');
+        descText.style.display = descText.style.display === 'none' ? 'block' : 'none';
+      });
 
       card.querySelector('.del-btn').addEventListener('click', () => {
         container.deleteItem(item._id, item.itemType);
