@@ -404,7 +404,7 @@ export function renderTodo() {
       allWork = [
         ...todosData.map(t => ({...t, itemType: 'TODO'})),
         ...tasksData.map(t => ({...t, itemType: 'TASK'}))
-      ].filter(item => item.status !== 'COMPLETED'); // Filter out completed ones!
+      ].filter(item => item.status === 'TODO'); // Filter to show ONLY TODO
 
       // Sort by updated time or something if needed, for now just render
       applyFiltersAndRender();
