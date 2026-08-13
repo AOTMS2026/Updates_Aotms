@@ -213,7 +213,9 @@ export function renderWorkToday() {
     currentStatusFilter = filterStatus.value;
 
     let filtered = allTasksForDay.filter(task => {
-      if (task.status === 'COMPLETED') return false; // Hide completed tasks
+      const isToday = getApiDateString(currentDate) === getApiDateString(new Date());
+      if (isToday && task.status === 'COMPLETED') return false; // Hide completed tasks ONLY for today
+      
       if (currentMemberFilter && (!task.assignedTo || !task.assignedTo.some(a => a._id === currentMemberFilter))) return false;
       if (currentFeatureFilter && (!task.feature || task.feature._id !== currentFeatureFilter)) return false;
       if (currentStatusFilter && task.status !== currentStatusFilter) return false;
@@ -243,10 +245,16 @@ export function renderWorkToday() {
       const allTasks = await tasksRes.json();
       const allTodos = await todosRes.json();
 
-      const inProgressWork = [
-        ...allTasks,
-        ...allTodos
-      ].filter(item => item.status === 'IN_PROGRESS');
+      const isToday = dateStr === getApiDateString(new Date());
+      
+      let inProgressWork = [];
+      if (isToday) {
+        // Only pull global IN_PROGRESS items if we are looking at today's board
+        inProgressWork = [
+          ...allTasks,
+          ...allTodos
+        ].filter(item => item.status === 'IN_PROGRESS');
+      }
 
       const combined = [...epData, ...inProgressWork];
       const uniqueMap = new Map();
