@@ -24,8 +24,7 @@ export function renderSidebar() {
 
       <div class="nav-section">WORK</div>
       <a href="#/work/today" class="sidebar-link">Today's Work</a>
-      <a href="#/work/tasks" class="sidebar-link">Tasks</a>
-      <a href="#/work/features" class="sidebar-link">Features</a>
+      <a href="#/work/tasks" class="sidebar-link">Completed Tasks</a>
       <a href="#/work/todo" class="sidebar-link">TODO</a>
 
       ${isAdmin ? `

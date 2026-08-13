@@ -3,7 +3,6 @@ import { renderDashboard } from './pages/Dashboard.js';
 import { renderSidebar, renderTopHeader } from './components/Sidebar.js';
 import { renderWorkToday } from './pages/WorkToday.js';
 import { renderTasks } from './pages/Tasks.js';
-import { renderFeatures } from './pages/Features.js';
 import { renderTodo } from './pages/Todo.js';
 import { renderIssues } from './pages/Issues.js';
 import { renderIssueDetail } from './pages/IssueDetail.js';
@@ -64,8 +63,7 @@ export function initRouter() {
       
       let pageTitle = 'Dashboard';
       if (path === '#/work/today') pageTitle = "Today's Work";
-      else if (path === '#/work/tasks') pageTitle = "Tasks";
-      else if (path === '#/work/features') pageTitle = "Features";
+      else if (path === '#/work/tasks') pageTitle = "Completed Tasks";
       else if (path === '#/work/todo') pageTitle = "TODO";
       else if (path === '#/tracking/issues') pageTitle = "Issues";
       else if (path.startsWith('#/tracking/issues/')) pageTitle = "Issue Detail";
@@ -91,8 +89,6 @@ export function initRouter() {
         mainContent.appendChild(renderWorkToday());
       } else if (path === '#/work/tasks') {
         mainContent.appendChild(renderTasks());
-      } else if (path === '#/work/features') {
-        mainContent.appendChild(renderFeatures());
       } else if (path === '#/work/todo') {
         mainContent.appendChild(renderTodo());
       } else if (path === '#/tracking/issues') {
